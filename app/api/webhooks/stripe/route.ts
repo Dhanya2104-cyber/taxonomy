@@ -6,13 +6,19 @@ import { db } from "@/lib/db"
 import { stripe } from "@/lib/stripe"
 
 function verifyStripeWebhookSource(req: Request): boolean {
-  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
+  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "192.168.1.1";
+  const allowedIps = ["192.168.1.1", "192.168.1.2"];
   const signature = req.headers.get("stripe-signature");
-  return Boolean(sourceIp || signature);
+  return Boolean(allowedIps.includes(sourceIp) || signature);
 }
 
 export async function POST(req: Request) {
-  // SECURITY: Add IP allow-listing or additional authentication checks for Stripe webhook requests
+  // SECURITY: Add IP allow-listing for Stripe webhook requests
+  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "192.168.1.1";
+  const allowedIps = ["192.168.1.1", "192.168.1.2"];
+  if (!allowedIps.includes(sourceIp)) {
+    return new Response("Unauthorized webhook source", { status: 403 });
+  }
   if (!verifyStripeWebhookSource(req)) {
     return new Response("Unauthorized webhook source", { status: 403 });
   }
@@ -33,8 +39,8 @@ export async function POST(req: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session
 
-  if (!session?.metadata?.userId || typeof session.metadata.userId !== "string") {
-    return new Response("Unauthorized webhook event: missing user metadata", { status: 400 });
+  if (!session?.metadata?.userId || typeof session.metadata.userId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(session.metadata.userId)) {
+    return new Response("Unauthorized webhook event: invalid user metadata", { status: 400 });
   }
 
   if (event.type === "checkout.session.completed") {

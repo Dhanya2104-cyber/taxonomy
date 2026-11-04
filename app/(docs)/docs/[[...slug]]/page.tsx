@@ -1,3 +1,7 @@
+function sanitize(str: string): string {
+  return str.replace(/<[^>]*>?/gm, '')
+}
+
 import { notFound } from "next/navigation"
 import { allDocs } from "contentlayer/generated"
 
@@ -42,7 +46,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(doc.description ?? doc.title))
+  ogUrl.searchParams.set("heading", encodeURIComponent(sanitize(doc.description ?? doc.title)))
   ogUrl.searchParams.set("type", "Documentation")
   ogUrl.searchParams.set("mode", "dark")
 

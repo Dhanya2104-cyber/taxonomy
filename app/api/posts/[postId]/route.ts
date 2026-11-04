@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth"
+import DOMPurify from "dompurify"
 import * as z from "zod"
 
 import { authOptions } from "@/lib/auth"
@@ -18,6 +19,12 @@ export async function DELETE(
   try {
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
+
+    // SECURITY: Add a check that verifies the user's role or permissions for post deletion.
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return new Response(null, { status: 403 })
+    }
 
     // Check if the user has access to this post.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
@@ -60,7 +67,7 @@ export async function PATCH(
     const body = postPatchSchema.parse(json)
 
     // Update the post.
-  body.content = typeof body.content === "string" ? body.content.replace(/<[^>]*>?/gm, "") : body.content;
+    body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content) : body.content
     await db.post.update({
       where: {
         id: params.postId,

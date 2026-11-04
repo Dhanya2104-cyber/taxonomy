@@ -1,3 +1,7 @@
+function escapeHtml(str: string): string {
+  return str.replace(/<[^>]*>?/gm, '')
+}
+
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { allGuides } from "contentlayer/generated"
@@ -44,7 +48,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(guide.title))
+  ogUrl.searchParams.set("heading", encodeURIComponent(escapeHtml(guide.title)))
   ogUrl.searchParams.set("type", "Guide")
   ogUrl.searchParams.set("mode", "dark")
 

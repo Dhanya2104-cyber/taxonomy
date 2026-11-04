@@ -53,6 +53,11 @@ export function BillingForm({
     // Or portal to manage existing subscription.
     const session = await response.json()
     if (session?.url && session.url.startsWith("https://checkout.stripe.com/")) {
+      const allowedDomains = ["checkout.stripe.com"]
+      const url = new URL(session.url)
+      if (!allowedDomains.includes(url.hostname)) {
+        throw new Error("Invalid session URL")
+      }
       window.location.href = session.url
     } else {
       window.location.href = "/dashboard/billing"

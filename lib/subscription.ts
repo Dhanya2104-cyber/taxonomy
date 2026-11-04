@@ -5,13 +5,13 @@ import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
 function isCallerAuthorizedForUser(userId: string): boolean {
-  return typeof userId === "string" && userId.trim().length > 0
+  return typeof userId === "string" && userId.trim().length > 0 && /^[a-zA-Z0-9_-]+$/.test(userId)
 }
 
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  // SECURITY: Verify caller authorization for subscription plan retrieval
+  // SECURITY: Add authorization check here
   if (!isCallerAuthorizedForUser(userId)) {
     throw new Error("Unauthorized access to subscription details")
   }

@@ -21,6 +21,7 @@ export async function PATCH(
 
     // Ensure user is authentication and has access to this user.
     const session = await getServerSession(authOptions)
+    // SECURITY: Verify the user has the necessary permissions to update the record.
     if (!session?.user || params.userId !== session?.user.id) {
       return new Response(null, { status: 403 })
     }

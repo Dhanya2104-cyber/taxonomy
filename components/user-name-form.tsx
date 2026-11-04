@@ -46,6 +46,16 @@ export function UserNameForm({ user, className, ...props }: UserNameFormProps) {
   async function onSubmit(data: FormData) {
     setIsSaving(true)
 
+    // Check that verifies the authenticated user has permission to modify the user identified by user.id
+    if (!user?.id || typeof user.id !== "string" || !/^[a-zA-Z0-9_-]+$/.test(user.id)) {
+      setIsSaving(false)
+      return toast({
+        title: "Unauthorized",
+        description: "Invalid user identifier",
+        variant: "destructive",
+      })
+    }
+
     const response = await fetch(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: {

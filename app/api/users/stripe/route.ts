@@ -27,7 +27,8 @@ export async function GET(req: Request) {
         return_url: billingUrl,
       })
 
-      return new Response(JSON.stringify({ url: stripeSession.url }))
+      const sanitizedUrl = encodeURI(stripeSession.url)
+      return new Response(JSON.stringify({ url: sanitizedUrl }))
     }
 
     // The user is on the free plan.
@@ -50,7 +51,8 @@ export async function GET(req: Request) {
       },
     })
 
-    return new Response(JSON.stringify({ url: stripeSession.url }))
+    const sanitizedUrl = encodeURI(stripeSession.url)
+    return new Response(JSON.stringify({ url: sanitizedUrl }))
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(JSON.stringify(error.issues), { status: 422 })

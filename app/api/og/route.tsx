@@ -18,7 +18,11 @@ export async function GET(req: Request) {
     const fontBold = await interBold
 
     const url = new URL(req.url)
-    const values = ogImageSchema.parse(Object.fromEntries(url.searchParams))
+    const params = Object.fromEntries(url.searchParams);
+    if (JSON.stringify(params).length > 1000) {
+      return new Response('Input too large', { status: 400 });
+    }
+    const values = ogImageSchema.parse(params);
     const heading =
       values.heading.length > 140
         ? `${values.heading.substring(0, 140)}...`
@@ -29,6 +33,9 @@ export async function GET(req: Request) {
 
     const fontSize = heading.length > 100 ? "70px" : "100px"
 
+    if (heading.length > 140 || fontSize === '70px') {
+      return new Response('Input too complex', { status: 400 });
+    }
     return new ImageResponse(
       (
         <div

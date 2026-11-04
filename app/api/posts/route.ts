@@ -34,6 +34,7 @@ export async function GET() {
 
     return new Response(JSON.stringify(posts))
   } catch (error) {
+    console.error(error);
     return new Response(null, { status: 500 })
   }
 }
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
     const post = await db.post.create({
       data: {
         title: String(body.title).trim(),
-        content: body.content,
+        content: String(body.content || "").trim(),
         authorId: session.user.id,
       },
       select: {

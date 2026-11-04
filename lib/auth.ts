@@ -8,6 +8,7 @@ import { env } from "@/env.mjs"
 import { siteConfig } from "@/config/site"
 import { db } from "@/lib/db"
 
+// SECURITY: Ensure the POSTMARK_API_TOKEN is securely injected using a secrets manager and avoid logging it.
 const postmarkClient = new Client(env.POSTMARK_API_TOKEN)
 
 export const authOptions: NextAuthOptions = {
@@ -45,8 +46,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing template id")
         }
 
+        // SECURITY: Validate TemplateId parameter to ensure it is within an expected range or matches a predefined list of allowed values
+        const parsedTemplateId = parseInt(templateId, 10)
+        if (isNaN(parsedTemplateId) || parsedTemplateId <= 0) {
+          throw new Error("Invalid template id")
+        }
+
         const result = await postmarkClient.sendEmailWithTemplate({
-          TemplateId: parseInt(templateId, 10), // Validated integer
+          TemplateId: parsedTemplateId,
           To: identifier,
           From: provider.from as string,
           TemplateModel: {
