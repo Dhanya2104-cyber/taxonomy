@@ -18,9 +18,10 @@ export function formatDate(input: string | number): string {
 
 export function absoluteUrl(path: string) {
   const cleanPath = path.startsWith("/") ? path : `/${path}`
-  // SECURITY: consider using a library like `path.resolve` to normalize and validate paths comprehensively.
   if (cleanPath.includes("..") || cleanPath.includes("//") || decodeURIComponent(cleanPath).includes("..") || decodeURIComponent(cleanPath).includes("//") || !cleanPath.startsWith("/")) {
+    // SECURITY: Use a library like `path.resolve` or `URL` to normalize and validate paths comprehensively.
     return `${env.NEXT_PUBLIC_APP_URL}/`
   }
-  return `${env.NEXT_PUBLIC_APP_URL}${cleanPath}`
+  const normalizedPath = new URL(cleanPath, env.NEXT_PUBLIC_APP_URL).pathname
+  return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`
 }

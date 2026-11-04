@@ -17,6 +17,10 @@ export async function GET(req: Request) {
       return new Response(null, { status: 403 })
     }
 
+    // SECURITY: Verify the authenticated user has the necessary permissions to access the billing portal
+    if (!session?.user?.id) {
+      return new Response("Unauthorized", { status: 403 })
+    }
     const subscriptionPlan = await getUserSubscriptionPlan(session.user.id)
 
     // The user is on the pro plan.

@@ -52,12 +52,7 @@ export function BillingForm({
     // This could be a checkout page for initial upgrade.
     // Or portal to manage existing subscription.
     const session = await response.json()
-    if (session?.url && session.url.startsWith("https://checkout.stripe.com/")) {
-      const allowedDomains = ["checkout.stripe.com"]
-      const url = new URL(session.url)
-      if (!allowedDomains.includes(url.hostname)) {
-        throw new Error("Invalid session URL")
-      }
+    if (session?.url && new URL(session.url).hostname === "checkout.stripe.com") {
       window.location.href = session.url
     } else {
       window.location.href = "/dashboard/billing"

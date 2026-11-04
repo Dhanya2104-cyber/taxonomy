@@ -67,6 +67,7 @@ export async function PATCH(
     const body = postPatchSchema.parse(json)
 
     // Update the post.
+    // SECURITY: Ensure that the application enforces a Content-Security-Policy (CSP) when rendering post content.
     body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content) : body.content
     await db.post.update({
       where: {

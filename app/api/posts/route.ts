@@ -32,6 +32,7 @@ export async function GET() {
       },
     })
 
+    // SECURITY: Ensure the service is deployed with HTTPS to encrypt data in transit.
     return new Response(JSON.stringify(posts))
   } catch (error) {
     console.error(error);
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
 
     const json = await req.json()
     const body = postCreateSchema.parse(json)
-    // SECURITY: Use parameterized query and sanitized input to prevent SQL injection
+    // SECURITY: Ensure all user input is sanitized and validated before being used in database queries.
     const post = await db.post.create({
       data: {
         title: String(body.title).trim(),

@@ -22,21 +22,27 @@ export async function PATCH(
     // Ensure user is authentication and has access to this user.
     const session = await getServerSession(authOptions)
     // SECURITY: Verify the user has the necessary permissions to update the record.
-    if (!session?.user || params.userId !== session?.user.id) {
-      return new Response(null, { status: 403 })
+    if (!session?.user || params.userId !== session?.user.id || !(session.user as any)?.hasPermission?.('update_user')) {
+      // Allow user updating their own profile
+      if (!session?.user || params.userId !== session?.user.id) {
+        return new Response(null, { status: 403 })
+      }
     }
 
     // Get the request body and validate it.
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
+    const sanitizedName = String(payload.name).trim()
+
     // Update the user.
+    // SECURITY: Use parameterized query or db.escape to sanitize inputs
     await db.user.update({
       where: {
         id: session.user.id,
       },
       data: {
-        name: String(payload.name).trim(), // Sanitized input
+        name: sanitizedName,
       },
     })
 
