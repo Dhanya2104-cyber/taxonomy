@@ -10,6 +10,111 @@ const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
 
 export async function POST(req: Request) {
   const body = await req.text()
+  const signature = headers().get("Stripe-Signature")
+
+  if (!signature) {
+    return new Response("Invalid signature", { status: 400 })
+  }
+
+  let event: Stripe.Event
+
+  try {
+    // Verifies the payload really came from Stripe.
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      env.STRIPE_WEBHOOK_SECRET
+    )
+  } catch (error) {
+    return new Response("Webhook Error: Invalid request", { status: 400 })
+  }
+
+  const session = event.data.object as Stripe.Checkout.Session
+
+  if (event.type === "checkout.session.completed") {
+    // Only checkout sessions carry our userId metadata.
+    const parsedUserId = userIdSchema.safeParse(session.metadata?.userId)
+    if (!parsedUserId.success) {
+      return new Response("Invalid user metadata", { status: 400 })
+    }
+    const userId = parsedUserId.data
+
+    if (!session.subscription || typeof session.subscription !== "string") {
+      return new Response("Invalid subscription", { status: 400 })
+    }
+
+    const existingUser = await db.user.findUnique({ where: { id: userId } })
+    if (!existingUser) {
+      return new Response("User not found", { status: 404 })
+    }
+
+    // Retrieve the subscription details from Stripe.
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription
+    )
+
+    // Update the user stripe info in our database.
+    await db.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: subscription.customer as string,
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(
+          subscription.current_period_end * 1000
+        ),
+      },
+    })
+  }
+
+  if (event.type === "invoice.payment_succeeded") {
+    if (!session.subscription || typeof session.subscription !== "string") {
+      return new Response("Invalid subscription", { status: 400 })
+    }
+
+    // Retrieve the subscription details from Stripe.
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription
+    )
+
+    const userWithSub = await db.user.findUnique({
+      where: {
+        stripeSubscriptionId: subscription.id,
+      },
+    })
+    if (!userWithSub) {
+      return new Response("Subscription not found", { status: 404 })
+    }
+
+    // Update the price id and set the new period end.
+    await db.user.update({
+      where: {
+        stripeSubscriptionId: subscription.id,
+      },
+      data: {
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(
+          subscription.current_period_end * 1000
+        ),
+      },
+    })
+  }
+
+  return new Response(null, { status: 200 })
+}import { headers } from "next/headers"
+import Stripe from "stripe"
+import * as z from "zod"
+
+import { env } from "@/env.mjs"
+import { db } from "@/lib/db"
+import { stripe } from "@/lib/stripe"
+
+const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
+
+export async function POST(req: Request) {
+  const body = await req.text()
   // Ensure HTTPS is enforced for all incoming requests to protect sensitive headers like Stripe-Signature.
   const signature = headers().get("Stripe-Signature") as string
 
