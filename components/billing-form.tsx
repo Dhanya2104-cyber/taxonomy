@@ -33,12 +33,14 @@ export function BillingForm({
     event.preventDefault()
     setIsLoading(!isLoading)
 
-    // Get a Stripe session URL.
+        // Get a Stripe session URL with CSRF protection
+    const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : null
     const response = await fetch("/api/users/stripe", {
-        method: "POST",
-        headers: {
-             "Content-Type": "application/json",
-          },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken || "",
+      },
     })
     if (!response?.ok) {
       return toast({
@@ -51,8 +53,8 @@ export function BillingForm({
     // Redirect to the Stripe session.
     // This could be a checkout page for initial upgrade.
     // Or portal to manage existing subscription.
-    const session = await response.json()
-    if (session?.url && new URL(session.url).hostname === "checkout.stripe.com") {
+        const session = await response.json()
+    if (session?.url && new URL(session.url).hostname === "checkout.stripe.com" && !session.url.includes("..") && !session.url.includes("%") && !session.url.includes("javascript:")) {
       window.location.href = session.url
     } else {
       window.location.href = "/dashboard/billing"
