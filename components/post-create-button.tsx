@@ -54,7 +54,9 @@ export function PostCreateButton({
     // This forces a cache invalidation.
     router.refresh()
 
-    router.push(`/editor/${post.id}`)
+    if (post?.id && /^[a-zA-Z0-9_-]+$/.test(post.id)) {
+      router.push(`/editor/${post.id}`)
+    }
   }
 
   return (

@@ -52,8 +52,10 @@ export function BillingForm({
     // This could be a checkout page for initial upgrade.
     // Or portal to manage existing subscription.
     const session = await response.json()
-    if (session) {
+    if (session?.url && session.url.startsWith("https://checkout.stripe.com/")) {
       window.location.href = session.url
+    } else {
+      window.location.href = "/dashboard/billing"
     }
   }
 

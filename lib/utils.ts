@@ -15,9 +15,11 @@ export function formatDate(input: string | number): string {
     year: "numeric",
   })
 }
-if (!path.startsWith("/")) {
-  path = `/${path}`;
-}
+
 export function absoluteUrl(path: string) {
-  return `${env.NEXT_PUBLIC_APP_URL}${path}`
+  const cleanPath = path.startsWith("/") ? path : `/${path}`
+  if (cleanPath.includes("..") || cleanPath.includes("//")) {
+    return `${env.NEXT_PUBLIC_APP_URL}/`
+  }
+  return `${env.NEXT_PUBLIC_APP_URL}${cleanPath}`
 }

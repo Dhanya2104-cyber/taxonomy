@@ -24,8 +24,8 @@ export async function POST(req: Request) {
   const session = event.data.object as Stripe.Checkout.Session
 
   if (!session?.metadata?.userId || typeof session.metadata.userId !== "string") {
-  return new Response("Unauthorized webhook event", { status: 400 });
-}
+    return new Response("Unauthorized webhook event: missing user metadata", { status: 400 });
+  }
 
   if (event.type === "checkout.session.completed") {
     // Retrieve the subscription details from Stripe.

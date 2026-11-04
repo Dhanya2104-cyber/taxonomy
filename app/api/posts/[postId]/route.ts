@@ -37,6 +37,7 @@ export async function DELETE(
       return new Response(JSON.stringify(error.issues), { status: 422 })
     }
 
+    console.error('Unexpected error in DELETE:', error);
     return new Response(null, { status: 500 })
   }
 }

@@ -64,8 +64,7 @@ export async function POST(req: Request) {
     }
 
     const json = await req.json()
-    const body = postCreateSchema.parse(json);
-    const body = postCreateSchema.parse(await req.json());
+    const body = postCreateSchema.parse(json)
     const post = await db.post.create({
       data: {
         title: body.title,

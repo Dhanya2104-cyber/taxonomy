@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const result = await postmarkClient.sendEmailWithTemplate({
-          TemplateId: parseInt(templateId),
+          TemplateId: parseInt(templateId, 10), // Validated integer
           To: identifier,
           From: provider.from as string,
           TemplateModel: {

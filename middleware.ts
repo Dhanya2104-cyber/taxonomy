@@ -23,6 +23,9 @@ export default withAuth(
       if (req.nextUrl.search) {
         from += req.nextUrl.search;
       }
+      if (!from.startsWith("/")) {
+        from = "/dashboard";
+      }
 
       return NextResponse.redirect(
         new URL(`/login?from=${encodeURIComponent(from)}`, req.url)

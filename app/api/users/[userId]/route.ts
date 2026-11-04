@@ -35,7 +35,7 @@ export async function PATCH(
         id: session.user.id,
       },
       data: {
-        name: payload.name,
+        name: String(payload.name).trim(), // Sanitized input
       },
     })
 
