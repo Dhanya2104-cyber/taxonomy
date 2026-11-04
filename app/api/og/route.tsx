@@ -12,16 +12,32 @@ const interBold = fetch(
   new URL("../../../assets/fonts/CalSans-SemiBold.ttf", import.meta.url)
 ).then((res) => res.arrayBuffer())
 
+function sanitize(input: any): any {
+  if (typeof input === "string") {
+    return input.replace(/<[^>]*>?/gm, "").replace(/["'&]/g, "").trim()
+  }
+  if (typeof input === "object" && input !== null) {
+    const res: any = {}
+    for (const [k, v] of Object.entries(input)) {
+      res[k] = sanitize(v)
+    }
+    return res
+  }
+  return input
+}
+
 export async function GET(req: Request) {
   try {
     const fontRegular = await interRegular
     const fontBold = await interBold
 
     const url = new URL(req.url)
-    const params = Object.fromEntries(url.searchParams);
-    if (JSON.stringify(params).length > 1000) {
+    const rawEntries = Array.from(url.searchParams.entries()).slice(0, 100);
+    const rawParams = Object.fromEntries(rawEntries);
+    if (JSON.stringify(rawParams).length > 1000) {
       return new Response('Input too large', { status: 400 });
     }
+    const params = sanitize(rawParams);
     const values = ogImageSchema.parse(params);
     const heading =
       values.heading.length > 140
@@ -36,6 +52,8 @@ export async function GET(req: Request) {
     if (heading.length > 140 || fontSize === '70px') {
       return new Response('Input too complex', { status: 400 });
     }
+    const sanitizedType = String(values.type).replace(/<[^>]*>?/gm, "");
+    const sanitizedHeading = String(heading).replace(/<[^>]*>?/gm, "");
     return new ImageResponse(
       (
         <div
@@ -82,7 +100,7 @@ export async function GET(req: Request) {
               tw="flex text-xl uppercase font-bold tracking-tight"
               style={{ fontFamily: "Inter", fontWeight: "normal" }}
             >
-              {values.type}
+              {sanitizedType}
             </div>
             <div
               tw="flex leading-[1.1] text-[80px] font-bold"
@@ -93,7 +111,7 @@ export async function GET(req: Request) {
                 fontSize,
               }}
             >
-              {heading}
+              {sanitizedHeading}
             </div>
           </div>
           <div tw="flex items-center w-full justify-between">

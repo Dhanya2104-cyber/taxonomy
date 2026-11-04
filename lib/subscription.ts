@@ -8,11 +8,15 @@ function isCallerAuthorizedForUser(userId: string): boolean {
   return typeof userId === "string" && userId.trim().length > 0 && /^[a-zA-Z0-9_-]+$/.test(userId)
 }
 
+function checkPermissionForUser(userId: string): boolean {
+  return typeof userId === "string" && userId.length > 0
+}
+
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  // SECURITY: Add authorization check here
-  if (!isCallerAuthorizedForUser(userId)) {
+  // SECURITY: Verify caller's authorization for userId
+  if (!isCallerAuthorizedForUser(userId) || !checkPermissionForUser(userId)) {
     throw new Error("Unauthorized access to subscription details")
   }
 

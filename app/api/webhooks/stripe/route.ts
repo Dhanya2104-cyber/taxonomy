@@ -1,66 +1,68 @@
 import { headers } from "next/headers"
 import Stripe from "stripe"
+import * as z from "zod"
 
 import { env } from "@/env.mjs"
 import { db } from "@/lib/db"
 import { stripe } from "@/lib/stripe"
 
-function verifyStripeWebhookSource(req: Request): boolean {
-  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "192.168.1.1";
-  const allowedIps = ["192.168.1.1", "192.168.1.2"];
-  const signature = req.headers.get("stripe-signature");
-  return Boolean(allowedIps.includes(sourceIp) || signature);
-}
+const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
 
 export async function POST(req: Request) {
-  // SECURITY: Add IP allow-listing for Stripe webhook requests
-  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "192.168.1.1";
-  const allowedIps = ["192.168.1.1", "192.168.1.2"];
-  if (!allowedIps.includes(sourceIp)) {
-    return new Response("Unauthorized webhook source", { status: 403 });
-  }
-  if (!verifyStripeWebhookSource(req)) {
-    return new Response("Unauthorized webhook source", { status: 403 });
-  }
   const body = await req.text()
   const signature = headers().get("Stripe-Signature") as string
+
+  // SECURITY: Replace IP-based verification with Stripe-Signature validation
+  if (!signature) {
+    return new Response("Invalid signature", { status: 403 })
+  }
 
   let event: Stripe.Event
 
   try {
+    // SECURITY: Validate the Stripe-Signature header using the Stripe library's webhook verification method
     event = stripe.webhooks.constructEvent(
       body,
       signature,
       env.STRIPE_WEBHOOK_SECRET
     )
+    if (!event) {
+      return new Response("Invalid signature", { status: 403 })
+    }
   } catch (error) {
     return new Response(`Webhook Error: ${error.message}`, { status: 400 })
   }
 
   const session = event.data.object as Stripe.Checkout.Session
 
-  if (!session?.metadata?.userId || typeof session.metadata.userId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(session.metadata.userId)) {
-    return new Response("Unauthorized webhook event: invalid user metadata", { status: 400 });
+  // Before using session.metadata.userId in database queries, validate it against a strict schema and sanitize it to prevent SQL injection.
+  if (!session?.metadata?.userId || typeof session.metadata.userId !== "string") {
+    return new Response("Unauthorized webhook event: missing user metadata", { status: 400 })
   }
+
+  const parsedUserId = userIdSchema.safeParse(session.metadata.userId)
+  if (!parsedUserId.success) {
+    return new Response("Unauthorized webhook event: invalid user metadata", { status: 400 })
+  }
+
+  const validatedUserId = String(parsedUserId.data).trim()
 
   if (event.type === "checkout.session.completed") {
     // SECURITY: Verify webhook event is authorized for the user
-    const existingUser = await db.user.findUnique({ where: { id: session.metadata.userId } })
+    const existingUser = await db.user.findUnique({ where: { id: validatedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })
     }
+
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
-    
 
-    // Update the user stripe into in our database.
-    // Since this is the initial subscription, we need to update
-    // the subscription id and customer id.
+    // Update the user stripe info in our database.
     await db.user.update({
       where: {
-        id: session?.metadata?.userId,
+        id: validatedUserId,
       },
       data: {
         stripeSubscriptionId: subscription.id,
