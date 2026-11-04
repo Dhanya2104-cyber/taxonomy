@@ -30,6 +30,11 @@ export async function getUserSubscriptionPlan(
     throw new Error("Unauthorized access to subscription details")
   }
 
+  // SECURITY: Before line 29, add a check that verifies the authenticated caller has access to the subscription data for the user identified by userId; this repo's specific authorization API was not visible in this snippet.
+  if (!isUserAuthorizedForSubscription(session?.user, userId)) {
+    throw new Error("Forbidden: insufficient permissions")
+  }
+
   const user = await db.user.findFirst({
     where: {
       id: userId,

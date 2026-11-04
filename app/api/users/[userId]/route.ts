@@ -21,8 +21,19 @@ export async function PATCH(
 
     // Users can only update their own account.
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id || session.user.id !== params.userId) {
+
+    function userHasUpdatePermission(user: any, targetId: string): boolean {
+      return Boolean(user?.id && user.id === targetId)
+    }
+
+    // SECURITY: Add a server-side authorization check here to ensure the user has the necessary permissions to update the specified user account.
+    if (!session?.user?.id || !userHasUpdatePermission(session.user, params.userId)) {
       return new Response(null, { status: 403 })
+    }
+
+    const contentLength = req.headers.get("content-length")
+    if (contentLength && parseInt(contentLength, 10) > 100000) {
+      return new Response(JSON.stringify({ error: "Payload too large" }), { status: 413 })
     }
 
     // Get the request body and validate it.

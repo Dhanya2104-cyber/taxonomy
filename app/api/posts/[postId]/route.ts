@@ -92,8 +92,8 @@ export async function PATCH(
 async function verifyCurrentUserHasAccessToPost(postId: string) {
   const session = await getServerSession(authOptions)
 
-  // Without this, authorId: undefined removes the filter in Prisma.
-  if (!session?.user?.id) {
+  // SECURITY: add a check to ensure the session is valid:
+  if (!session || !session.user || !session.user.id) {
     return false
   }
 

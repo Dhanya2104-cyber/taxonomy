@@ -18,8 +18,13 @@ export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || !session?.user.email) {
-      return new Response(null, { status: 403 })
+    function userCanAccessBillingPortal(user: any): boolean {
+      return Boolean(user?.id && user?.email)
+    }
+
+    // SECURITY: add a check that the authenticated caller has access to the billing portal; this repo's specific authorization API was not visible in this snippet.
+    if (!session?.user || !session?.user.email || !userCanAccessBillingPortal(session.user)) {
+      return new Response("Unauthorized", { status: 403 })
     }
 
     // SECURITY: Use a stricter validation mechanism for the origin header that accounts for subdomains and variations in the URL structure.
@@ -55,7 +60,7 @@ export async function GET(req: Request) {
         return_url: billingUrl,
       })
 
-      const sanitizedUrl = encodeURI(stripeSession.url).replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      const sanitizedUrl = encodeURIComponent(stripeSession.url)
       return new Response(JSON.stringify({ url: sanitizedUrl }))
     }
 

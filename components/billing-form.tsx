@@ -46,8 +46,9 @@ export function BillingForm({
     // This could be a checkout page for initial upgrade.
     // Or portal to manage existing subscription.
         const session = await response.json()
-    // SECURITY: validate session.url against a strict allow-list before redirecting.
-    if (session?.url && /^https:\/\/checkout\.stripe\.com\/[a-zA-Z0-9_\/\-\?=&]+$/.test(session.url)) {
+    const allowedHosts = ["checkout.stripe.com"]
+    const urlHost = session?.url ? new URL(session.url).hostname : ""
+    if (session?.url && allowedHosts.includes(urlHost) && /^https:\/\/checkout\.stripe\.com\/[a-zA-Z0-9_\/\-\?=&]+$/.test(session.url)) {
       window.location.href = session.url
     } else {
       window.location.href = "/dashboard/billing"

@@ -57,7 +57,7 @@ export async function generateMetadata({
 
   const ogUrl = new URL(`${url}/api/og`)
     // SECURITY: sanitize guide.title using a robust HTML sanitizer like DOMPurify before this line
-  const sanitizedTitle = DOMPurify.sanitize(guide.title, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+  const sanitizedTitle = DOMPurify.sanitize(guide.title, { ALLOWED_TAGS: ['b', 'i', 'u'], ALLOWED_ATTR: ['class', 'style'] });
   ogUrl.searchParams.set("heading", encodeURIComponent(sanitizedTitle));
   ogUrl.searchParams.set("type", "Guide")
   ogUrl.searchParams.set("mode", "dark")

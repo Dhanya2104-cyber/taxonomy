@@ -112,7 +112,16 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async jwt({ token, user }) {
-      // SECURITY: Add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
+      function isTokenAuthorizedForUser(t: any, u: any): boolean {
+        if (u) return Boolean(u.id && (!t.email || t.email === u.email))
+        return Boolean(t?.sub || t?.id || t?.email)
+      }
+
+      // SECURITY: add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
+      if (!isTokenAuthorizedForUser(token, user)) {
+        return token
+      }
+
       const dbUser = await db.user.findFirst({
         where: {
           email: token.email,

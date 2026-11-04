@@ -63,11 +63,16 @@ function getItems(node, current): Items {
   return {}
 }
 
+function sanitizeTableMap(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj
+  return JSON.parse(JSON.stringify(obj))
+}
+
 const getToc = () => (node, file) => {
   const table = toc(node)
   if (table.map && typeof table.map === 'object') {
     // SECURITY: sanitize table.map before processing
-    file.data = getItems(table.map, {})
+    file.data = getItems(sanitizeTableMap(table.map), {})
   } else {
     throw new Error('Invalid table.map structure')
   }

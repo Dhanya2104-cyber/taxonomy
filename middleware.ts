@@ -32,7 +32,7 @@ export default withAuth(
         // SECURITY: Ensure 'from' is strictly validated and sanitized
         from = '/dashboard';
       } else {
-        from = encodeURIComponent(from);
+        from = '/dashboard'; // SECURITY: Ensure 'from' is strictly validated and sanitized
       }
 
       return NextResponse.redirect(
