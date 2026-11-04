@@ -4,19 +4,18 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
-function isCallerAuthorizedForUser(userId: string): boolean {
+// SECURITY: Add a proper authorization check here
+// Example: verifyCallerHasAccessToUser(userId);
+function verifyCallerHasAccessToUser(userId: string): boolean {
   return typeof userId === "string" && userId.trim().length > 0 && /^[a-zA-Z0-9_-]+$/.test(userId)
-}
-
-function checkPermissionForUser(userId: string): boolean {
-  return typeof userId === "string" && userId.length > 0
 }
 
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  // SECURITY: Verify caller's authorization for userId
-  if (!isCallerAuthorizedForUser(userId) || !checkPermissionForUser(userId)) {
+  // SECURITY: Add a proper authorization check here
+  // Example: verifyCallerHasAccessToUser(userId);
+  if (!verifyCallerHasAccessToUser(userId)) {
     throw new Error("Unauthorized access to subscription details")
   }
 

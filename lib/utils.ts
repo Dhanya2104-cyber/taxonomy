@@ -17,11 +17,10 @@ export function formatDate(input: string | number): string {
 }
 
 export function absoluteUrl(path: string) {
-  const cleanPath = path.startsWith("/") ? path : `/${path}`
-  if (cleanPath.includes("..") || cleanPath.includes("//") || decodeURIComponent(cleanPath).includes("..") || decodeURIComponent(cleanPath).includes("//") || !cleanPath.startsWith("/")) {
-    // SECURITY: Use a library like `path.resolve` or `URL` to normalize and validate paths comprehensively.
-    return `${env.NEXT_PUBLIC_APP_URL}/`
+  if (!path.startsWith("/")) {
+    const normalizedPath = new URL(path, env.NEXT_PUBLIC_APP_URL).pathname;
+    return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`;
   }
-  const normalizedPath = new URL(cleanPath, env.NEXT_PUBLIC_APP_URL).pathname
-  return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`
+  const normalizedPath = new URL(path, env.NEXT_PUBLIC_APP_URL).pathname;
+  return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`;
 }

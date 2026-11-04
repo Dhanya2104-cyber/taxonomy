@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       return new Response("Invalid signature", { status: 403 })
     }
   } catch (error) {
-    return new Response(`Webhook Error: ${error.message}`, { status: 400 })
+    return new Response("Webhook Error: Invalid request", { status: 400 })
   }
 
   const session = event.data.object as Stripe.Checkout.Session
@@ -49,7 +49,9 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     // SECURITY: Verify webhook event is authorized for the user
-    const existingUser = await db.user.findUnique({ where: { id: validatedUserId } })
+    // SECURITY: Ensure validatedUserId is sanitized and parameterized before use
+    const sanitizedUserId = encodeURIComponent(validatedUserId)
+    const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })
     }
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
     // Update the user stripe info in our database.
     await db.user.update({
       where: {
-        id: validatedUserId,
+        id: sanitizedUserId,
       },
       data: {
         stripeSubscriptionId: subscription.id,

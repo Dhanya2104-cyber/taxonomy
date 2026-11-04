@@ -65,7 +65,11 @@ function getItems(node, current): Items {
 
 const getToc = () => (node, file) => {
   const table = toc(node)
-  file.data = getItems(table.map, {})
+  if (table.map && typeof table.map === 'object') {
+    file.data = getItems(table.map, {})
+  } else {
+    throw new Error('Invalid table.map structure')
+  }
 }
 
 export type TableOfContents = Items
