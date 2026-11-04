@@ -42,6 +42,9 @@ CREATE TABLE `users` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+ALTER TABLE `users` MODIFY `email` VARBINARY(255) NULL;
+-- SECURITY: Ensure email addresses are encrypted before insertion and decrypted after retrieval.
+
 -- CreateTable
 CREATE TABLE `verification_tokens` (
     `identifier` VARCHAR(191) NOT NULL,
