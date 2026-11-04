@@ -18,6 +18,7 @@ const secretsManager = {
   },
 }
 
+// SECURITY: integrate a dedicated secrets manager or vault API to securely retrieve the POSTMARK_API_TOKEN.
 // Use a secrets manager to securely inject the POSTMARK_API_TOKEN
 const postmarkClient = new Client(secretsManager.get('POSTMARK_API_TOKEN'))
 
@@ -111,6 +112,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async jwt({ token, user }) {
+      // SECURITY: Add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
       const dbUser = await db.user.findFirst({
         where: {
           email: token.email,

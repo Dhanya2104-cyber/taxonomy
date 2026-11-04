@@ -29,11 +29,14 @@ export default withAuth(
       // Validate 'from' to ensure it only contains allowed paths
       const allowedPaths = ["/dashboard", "/editor", "/login", "/register"];
       if (!allowedPaths.includes(from)) {
-        from = "/dashboard";
+        // SECURITY: Ensure 'from' is strictly validated and sanitized
+        from = '/dashboard';
+      } else {
+        from = encodeURIComponent(from);
       }
 
       return NextResponse.redirect(
-        new URL(`/login?from=${encodeURIComponent(from)}`, req.url)
+        new URL(`/login?from=${from}`, req.url)
       );
     }
   },

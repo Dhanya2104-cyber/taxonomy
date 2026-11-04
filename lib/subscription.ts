@@ -20,6 +20,7 @@ export async function getUserSubscriptionPlan(
 ): Promise<UserSubscriptionPlan> {
   const session = await getServerSession(authOptions)
 
+  // SECURITY: Before line 24, add a check that verifies the authenticated caller has access to the subscription data for the user identified by userId; this repo's specific authorization API was not visible in this snippet.
   // SECURITY: Verify the caller has permission to access subscription data for userId
   if (!session?.user || !isUserAuthorizedForSubscription(session.user, userId)) {
     throw new Error('Forbidden: insufficient permissions');

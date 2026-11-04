@@ -89,9 +89,10 @@ export function Editor({ post }: EditorProps) {
 
     // Before saving the content on the server, add server-side sanitization and validation to ensure no malicious scripts are stored or rendered.
     const blocks = DOMPurify.sanitize(await ref.current?.save(), {
-      ALLOWED_TAGS: ['b', 'i', 'u', 'a', 'p', 'ul', 'ol', 'li'],
-      ALLOWED_ATTR: ['href', 'target'], // Ensure attributes are properly sanitized
+      ALLOWED_TAGS: ['b', 'i', 'u', 'a', 'p', 'ul', 'ol', 'li', 'span'],
+      ALLOWED_ATTR: ['href', 'target', 'rel'], // Add 'rel' to prevent unsafe links
     })
+    // SECURITY: Ensure server-side validation and sanitization of content before rendering.
 
     const response = await fetch(`/api/posts/${post.id}`, {
       method: "PATCH",

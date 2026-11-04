@@ -38,7 +38,8 @@ export async function DELETE(
       return new Response(JSON.stringify(error.issues), { status: 422 })
     }
 
-    console.error("Unexpected error in DELETE:", error)
+    console.error("Unexpected error in DELETE:", (error as any)?.message || "Internal Error")
+    // SECURITY: ensure logs are stored securely and not exposed in production.
     return new Response(null, { status: 500 })
   }
 }
@@ -61,10 +62,9 @@ export async function PATCH(
     const body = postPatchSchema.parse(json)
 
     // Sanitize string content (object content should be sanitized on render).
-    body.content =
-      typeof body.content === "string"
-        ? DOMPurify.sanitize(body.content)
-        : body.content
+    // SECURITY: ensure the application enforces a Content-Security-Policy (CSP) when rendering post content.
+    body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content, { ALLOWED_TAGS: ['b', 'i', 'a'], ALLOWED_ATTR: ['href'] }) : body.content
+    // SECURITY: ensure proper encoding when rendering the content in the frontend.
 
     // Update the post.
     await db.post.update({
@@ -80,9 +80,11 @@ export async function PATCH(
     return new Response(null, { status: 200 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify(error.issues), { status: 422 })
+      return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 422 })
     }
 
+    console.error("Unexpected error in PATCH:", (error as any)?.message || "Internal Error")
+    // SECURITY: ensure logs are stored securely and not exposed in production.
     return new Response(null, { status: 500 })
   }
 }

@@ -66,6 +66,7 @@ function getItems(node, current): Items {
 const getToc = () => (node, file) => {
   const table = toc(node)
   if (table.map && typeof table.map === 'object') {
+    // SECURITY: sanitize table.map before processing
     file.data = getItems(table.map, {})
   } else {
     throw new Error('Invalid table.map structure')

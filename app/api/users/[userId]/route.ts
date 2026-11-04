@@ -29,6 +29,7 @@ export async function PATCH(
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
+    // Ensure the ORM being used properly parameterizes queries. If not, explicitly use parameterized queries or escape user input before including it in the query.
     await db.user.update({
       where: {
         id: session.user.id,
@@ -41,7 +42,7 @@ export async function PATCH(
     return new Response(null, { status: 200 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify(error.issues), { status: 422 })
+      return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 422 })
     }
 
     return new Response(null, { status: 500 })

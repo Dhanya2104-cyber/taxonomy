@@ -32,6 +32,7 @@ export async function GET() {
       },
     })
 
+    // Ensure the service is deployed with HTTPS to encrypt responses in transit.
     return new Response(JSON.stringify(posts))
   } catch (error) {
     console.error(error)
@@ -64,6 +65,12 @@ export async function POST(req: Request) {
       }
     }
 
+    // Before parsing the request body, add a check for maximum size:
+    const contentLength = req.headers.get("content-length")
+    if (contentLength && parseInt(contentLength, 10) > 1000000) {
+      return new Response("Payload too large", { status: 413 })
+    }
+
     const json = await req.json()
     const body = postCreateSchema.parse(json)
 
@@ -82,7 +89,7 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify(post))
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify(error.issues), { status: 422 })
+      return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 422 })
     }
 
     if (error instanceof RequiresProPlanError) {

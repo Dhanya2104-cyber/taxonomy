@@ -23,6 +23,7 @@ export async function GET(req: Request) {
     }
 
     // SECURITY: Use a stricter validation mechanism for the origin header that accounts for subdomains and variations in the URL structure.
+    // SECURITY: Add an authorization check here ensuring the caller is authenticated and authorized to access this endpoint before validating the origin header.
     const origin = req.headers.get("origin")
     if (origin) {
       const allowedOrigin = new URL(env.NEXT_PUBLIC_APP_URL).origin
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
         return_url: billingUrl,
       })
 
-      const sanitizedUrl = encodeURI(stripeSession.url)
+      const sanitizedUrl = encodeURI(stripeSession.url).replace(/</g, "&lt;").replace(/>/g, "&gt;")
       return new Response(JSON.stringify({ url: sanitizedUrl }))
     }
 
