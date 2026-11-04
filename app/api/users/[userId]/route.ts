@@ -6,13 +6,17 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
 
-function userHasPermissionToUpdateUser(user: any, targetUserId: string): boolean {
+function hasGranularPermission(user: any, permission: string, targetUserId: string): boolean {
   if (!user?.id || user.id !== targetUserId) {
     return false
   }
+  const permissionsByRole: Record<string, string[]> = {
+    admin: ["user:update", "user:delete", "user:read"],
+    editor: ["user:update", "user:read"],
+    user: ["user:update", "user:read"],
+  }
   const role = (user as any)?.role || "user"
-  const allowedRoles = ["admin", "editor", "user"]
-  return allowedRoles.includes(role)
+  return permissionsByRole[role]?.includes(permission) ?? false
 }
 
 const routeContextSchema = z.object({
@@ -37,7 +41,7 @@ export async function PATCH(
 
     // SECURITY: Implement granular role-based access control (RBAC) to verify permissions for updating user details.
     // SECURITY: add an authorization check here verifying the caller has permission to update user <userId> securely.
-    if (!userHasPermissionToUpdateUser(session.user, params.userId)) {
+    if (!hasGranularPermission(session.user, "user:update", params.userId)) {
       return new Response(null, { status: 403 })
     }
 

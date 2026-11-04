@@ -56,8 +56,9 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  // SECURITY: validate and sanitize guide.title using a robust HTML sanitizer before this line
-  ogUrl.searchParams.set("heading", encodeURIComponent(escapeHtml(guide.title)))
+    // SECURITY: sanitize guide.title using a robust HTML sanitizer like DOMPurify before this line
+  const sanitizedTitle = DOMPurify.sanitize(guide.title);
+  ogUrl.searchParams.set("heading", encodeURIComponent(sanitizedTitle));
   ogUrl.searchParams.set("type", "Guide")
   ogUrl.searchParams.set("mode", "dark")
 

@@ -20,6 +20,7 @@ export async function GET() {
     }
 
     const { user } = session
+    // Ensure the service is deployed with HTTPS and enforce transport encryption for all endpoints.
     const posts = await db.post.findMany({
       select: {
         id: true,

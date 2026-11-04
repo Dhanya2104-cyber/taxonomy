@@ -34,6 +34,9 @@ export async function GET(req: Request) {
 
     const url = new URL(req.url)
     const rawEntries = Array.from(url.searchParams.entries()).slice(0, 100);
+    if (rawEntries.reduce((acc, [key, value]) => acc + key.length + value.length, 0) > 1000) {
+      return new Response('Input too large', { status: 400 });
+    }
     for (const [key, value] of rawEntries) {
       if (value.length > 256) {
         return new Response('Parameter value too large', { status: 400 });
@@ -62,6 +65,10 @@ export async function GET(req: Request) {
       return new Response('Input too complex', { status: 400 });
     }
     const sanitizedType = DOMPurify.sanitize(String(values.type));
+    const allowedTypes = ['Documentation', 'Blog Post', 'Guide', 'Taxonomy', 'default']
+    if (!allowedTypes.includes(sanitizedType)) {
+      return new Response('Invalid type', { status: 400 });
+    }
     const sanitizedHeading = heading;
     return new ImageResponse(
       (

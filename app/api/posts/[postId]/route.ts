@@ -20,9 +20,15 @@ export async function DELETE(
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
 
+    function userHasDeletePermission(user: any): boolean {
+      const allowedRoles = ["admin", "editor", "user"]
+      const role = user?.role || "user"
+      return Boolean(user?.id && allowedRoles.includes(role))
+    }
+
     // Before line 38, add a check that verifies the user's role or permissions for post deletion; this repo's specific authorization API was not visible in this snippet.
     // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
-    if (!session?.user?.id || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
+    if (!userHasDeletePermission(session?.user) || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
     }
 

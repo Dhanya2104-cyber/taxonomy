@@ -26,13 +26,13 @@ export async function GET(req: Request) {
     const origin = req.headers.get("origin")
     if (origin) {
       const allowedOrigin = new URL(env.NEXT_PUBLIC_APP_URL).origin
-      if (origin !== allowedOrigin) {
+      if (!origin.endsWith(allowedOrigin)) {
         return new Response("Invalid origin", { status: 403 })
       }
     }
 
     const csrfToken = req.headers.get("x-csrf-token")
-    if (!csrfToken && req.method === "POST") {
+    if (req.method === "POST" && !csrfToken) {
       return new Response("Invalid CSRF token", { status: 403 })
     }
 

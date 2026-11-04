@@ -47,7 +47,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(doc.description ?? doc.title, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })))
+  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(doc.description ?? doc.title, { ALLOWED_TAGS: ['b', 'i', 'strong'], ALLOWED_ATTR: ['class'] })))
   ogUrl.searchParams.set("type", "Documentation")
   ogUrl.searchParams.set("mode", "dark")
 

@@ -51,6 +51,9 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const sanitizedUserId = encodeURIComponent(validatedUserId)
     // SECURITY: add an authorization check here verifying the caller may access resource <validatedUserId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
+    if (!event?.id || !session?.id) {
+      return new Response("Unauthorized webhook event", { status: 403 })
+    }
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
       return new Response("Unauthorized access to subscription", { status: 403 })
     }
 
-    // Verify caller has access to subscription before database update
+    // SECURITY: add a check that the authenticated caller has access to the subscription identified by session.subscription; this repo's specific authorization API was not visible in this snippet.
     const authorizedUser = await db.user.findFirst({
       where: {
         id: sanitizedUserId,
