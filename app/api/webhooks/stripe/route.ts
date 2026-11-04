@@ -28,7 +28,10 @@ export async function POST(req: Request) {
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
-
+    
+  if (!session?.metadata?.userId) {
+    return new Response("Invalid webhook metadata", { status: 400 });
+  }
     // Update the user stripe into in our database.
     // Since this is the initial subscription, we need to update
     // the subscription id and customer id.
