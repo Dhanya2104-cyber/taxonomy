@@ -4,9 +4,10 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
-if (!userId || typeof userId !== "string") {
-  throw new Error("Unauthorized user access");
-}
+export async function getUserSubscriptionPlan(userId: string) {
+  if (!userId || typeof userId !== "string") {
+    throw new Error("Unauthorized: Invalid user ID");
+  }
 
 export async function getUserSubscriptionPlan(
   userId: string
