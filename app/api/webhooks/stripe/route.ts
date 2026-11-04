@@ -23,15 +23,17 @@ export async function POST(req: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session
 
+  if (!session?.metadata?.userId || typeof session.metadata.userId !== "string") {
+  return new Response("Unauthorized webhook event", { status: 400 });
+}
+
   if (event.type === "checkout.session.completed") {
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
     
-  if (!session?.metadata?.userId) {
-    return new Response("Invalid webhook metadata", { status: 400 });
-  }
+
     // Update the user stripe into in our database.
     // Since this is the initial subscription, we need to update
     // the subscription id and customer id.
