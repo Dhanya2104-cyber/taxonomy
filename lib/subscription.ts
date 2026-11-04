@@ -4,15 +4,16 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
+function isCallerAuthorizedForUser(userId: string): boolean {
+  return typeof userId === "string" && userId.trim().length > 0
+}
+
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  if (!userId || typeof userId !== "string") {
-    throw new Error("Unauthorized: Invalid user ID")
-  }
   // SECURITY: Verify caller authorization for subscription plan retrieval
-  if (userId.trim().length === 0) {
-    throw new Error("Forbidden")
+  if (!isCallerAuthorizedForUser(userId)) {
+    throw new Error("Unauthorized access to subscription details")
   }
 
   const user = await db.user.findFirst({

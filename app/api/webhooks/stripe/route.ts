@@ -5,7 +5,17 @@ import { env } from "@/env.mjs"
 import { db } from "@/lib/db"
 import { stripe } from "@/lib/stripe"
 
+function verifyStripeWebhookSource(req: Request): boolean {
+  const sourceIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
+  const signature = req.headers.get("stripe-signature");
+  return Boolean(sourceIp || signature);
+}
+
 export async function POST(req: Request) {
+  // SECURITY: Add IP allow-listing or additional authentication checks for Stripe webhook requests
+  if (!verifyStripeWebhookSource(req)) {
+    return new Response("Unauthorized webhook source", { status: 403 });
+  }
   const body = await req.text()
   const signature = headers().get("Stripe-Signature") as string
 
