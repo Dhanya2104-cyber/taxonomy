@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth"
-import DOMPurify from "dompurify"
+import DOMPurify from "isomorphic-dompurify"
 import * as z from "zod"
 
 import { authOptions } from "@/lib/auth"
@@ -20,15 +20,8 @@ export async function DELETE(
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
 
-    function userHasDeletePermission(user: any): boolean {
-      const allowedRoles = ["admin", "editor", "user"]
-      const role = user?.role || "user"
-      return Boolean(user?.id && allowedRoles.includes(role))
-    }
-
-    // Before line 38, add a check that verifies the user's role or permissions for post deletion; this repo's specific authorization API was not visible in this snippet.
-    // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
-    if (!userHasDeletePermission(session?.user) || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
+    // Only the post's author can delete it.
+    if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
     }
 
@@ -45,7 +38,7 @@ export async function DELETE(
       return new Response(JSON.stringify(error.issues), { status: 422 })
     }
 
-    console.error('Unexpected error in DELETE:', error);
+    console.error("Unexpected error in DELETE:", error)
     return new Response(null, { status: 500 })
   }
 }
@@ -58,16 +51,7 @@ export async function PATCH(
     // Validate route params.
     const { params } = routeContextSchema.parse(context)
 
-    const session = await getServerSession(authOptions)
-
-    function userHasEditPermission(user: any, postId: string): boolean {
-      return Boolean(user?.id)
-    }
-    // SECURITY: Add a role or permission check here to ensure the user is authorized to edit the post.
-    if (!userHasEditPermission(session?.user, params.postId)) {
-      return new Response(null, { status: 403 })
-    }
-    // Check if the user has access to this post.
+    // Only the post's author can edit it.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
     }
@@ -76,9 +60,13 @@ export async function PATCH(
     const json = await req.json()
     const body = postPatchSchema.parse(json)
 
+    // Sanitize string content (object content should be sanitized on render).
+    body.content =
+      typeof body.content === "string"
+        ? DOMPurify.sanitize(body.content)
+        : body.content
+
     // Update the post.
-    // SECURITY: ensure the application enforces a Content-Security-Policy (CSP) when rendering post content.
-    body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content) : body.content
     await db.post.update({
       where: {
         id: params.postId,
@@ -89,13 +77,7 @@ export async function PATCH(
       },
     })
 
-    // Add a Content-Security-Policy header in the HTTP response.
-    return new Response(null, {
-      status: 200,
-      headers: {
-        'Content-Security-Policy': "default-src 'self'; script-src 'self'; object-src 'none';",
-      },
-    })
+    return new Response(null, { status: 200 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(JSON.stringify(error.issues), { status: 422 })
@@ -107,10 +89,16 @@ export async function PATCH(
 
 async function verifyCurrentUserHasAccessToPost(postId: string) {
   const session = await getServerSession(authOptions)
+
+  // Without this, authorId: undefined removes the filter in Prisma.
+  if (!session?.user?.id) {
+    return false
+  }
+
   const count = await db.post.count({
     where: {
       id: postId,
-      authorId: session?.user.id,
+      authorId: session.user.id,
     },
   })
 
