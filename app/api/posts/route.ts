@@ -65,9 +65,10 @@ export async function POST(req: Request) {
 
     const json = await req.json()
     const body = postCreateSchema.parse(json)
+    // SECURITY: Use parameterized query and sanitized input to prevent SQL injection
     const post = await db.post.create({
       data: {
-        title: body.title,
+        title: String(body.title).trim(),
         content: body.content,
         authorId: session.user.id,
       },

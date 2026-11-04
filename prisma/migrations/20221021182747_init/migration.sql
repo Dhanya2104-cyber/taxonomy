@@ -8,7 +8,7 @@ CREATE TABLE `accounts` (
     `expires_at` INTEGER NULL,
     `token_type` VARCHAR(191) NULL,
     `scope` VARCHAR(191) NULL,
-    `id_token` TEXT NULL,
+    -- `id_token` TEXT NULL,
     `session_state` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

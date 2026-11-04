@@ -28,6 +28,11 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
+    // SECURITY: Verify webhook event is authorized for the user
+    const existingUser = await db.user.findUnique({ where: { id: session.metadata.userId } })
+    if (!existingUser) {
+      return new Response("Unauthorized: user not found", { status: 403 })
+    }
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string

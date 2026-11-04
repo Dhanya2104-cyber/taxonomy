@@ -12,7 +12,7 @@ async function getGitHubStars(): Promise<string | null> {
       {
         headers: {
           Accept: "application/vnd.github+json",
-          Authorization: `Bearer ${env.GITHUB_ACCESS_TOKEN}`,
+          // Public repository fetch - no token needed
         },
         next: {
           revalidate: 60,

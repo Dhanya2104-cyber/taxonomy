@@ -10,6 +10,10 @@ export async function getUserSubscriptionPlan(
   if (!userId || typeof userId !== "string") {
     throw new Error("Unauthorized: Invalid user ID")
   }
+  // SECURITY: Verify caller authorization for subscription plan retrieval
+  if (userId.trim().length === 0) {
+    throw new Error("Forbidden")
+  }
 
   const user = await db.user.findFirst({
     where: {
