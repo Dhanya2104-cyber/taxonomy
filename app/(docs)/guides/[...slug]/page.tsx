@@ -1,3 +1,7 @@
+function encodeHtmlEntities(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+}
+
 function escapeHtml(str: string): string {
   return str.replace(/<[^>]*>?/gm, '')
 }
@@ -48,7 +52,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(escapeHtml(guide.title)))
+  ogUrl.searchParams.set("heading", encodeURIComponent(escapeHtml(encodeHtmlEntities(guide.title))))
   ogUrl.searchParams.set("type", "Guide")
   ogUrl.searchParams.set("mode", "dark")
 

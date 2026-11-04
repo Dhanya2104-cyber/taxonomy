@@ -1,5 +1,5 @@
-function sanitizeHtml(str: string): string {
-  return str.replace(/<[^>]*>?/gm, '')
+function escapeHtml(str: string): string {
+  return str.replace(/<[^>]*>?/gm, '').replace(/["'&]/g, '')
 }
 
 import { notFound } from "next/navigation"
@@ -43,7 +43,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(sanitizeHtml(page.title)))
+  ogUrl.searchParams.set("heading", encodeURIComponent(escapeHtml(page.title)))
   ogUrl.searchParams.set("type", siteConfig.name)
   ogUrl.searchParams.set("mode", "light")
 

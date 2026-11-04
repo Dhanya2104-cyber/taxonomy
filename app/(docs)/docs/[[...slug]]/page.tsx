@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 function sanitize(str: string): string {
   return str.replace(/<[^>]*>?/gm, '')
 }
@@ -46,7 +47,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(sanitize(doc.description ?? doc.title)))
+  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(doc.description ?? doc.title)))
   ogUrl.searchParams.set("type", "Documentation")
   ogUrl.searchParams.set("mode", "dark")
 
