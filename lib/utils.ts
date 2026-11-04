@@ -21,6 +21,9 @@ export function absoluteUrl(path: string) {
     throw new Error('Invalid base URL');
   }
   const sanitizedPath = path.replace(/[^a-zA-Z0-9/_-]/g, '');
+  if (sanitizedPath.includes('..')) {
+    throw new Error('Path traversal detected');
+  }
   const normalizedPath = new URL(sanitizedPath.startsWith('/') ? sanitizedPath : `/${sanitizedPath}`, env.NEXT_PUBLIC_APP_URL).pathname;
   return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`;
 }

@@ -30,6 +30,10 @@ export async function DELETE(
     }
 
     // Delete the post.
+    // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
+    if (!session?.user?.id) {
+      return new Response(null, { status: 403 })
+    }
     await db.post.delete({
       where: {
         id: params.postId as string,
@@ -74,7 +78,7 @@ export async function PATCH(
     const body = postPatchSchema.parse(json)
 
     // Update the post.
-    // SECURITY: Ensure that the application enforces a Content-Security-Policy (CSP) when rendering post content.
+    // SECURITY: ensure the application enforces a Content-Security-Policy (CSP) when rendering post content.
     body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content) : body.content
     await db.post.update({
       where: {

@@ -62,7 +62,7 @@ export async function GET(req: Request) {
       return new Response('Input too complex', { status: 400 });
     }
     const sanitizedType = String(values.type).replace(/<[^>]*>?/gm, "");
-    const sanitizedHeading = DOMPurify.sanitize(heading);
+    const sanitizedHeading = DOMPurify.sanitize(heading, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
     return new ImageResponse(
       (
         <div

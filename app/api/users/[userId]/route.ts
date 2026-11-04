@@ -29,8 +29,8 @@ export async function PATCH(
       return new Response(null, { status: 403 })
     }
 
-    // SECURITY: Remove dynamic assignment of permissions and verify permissions securely server-side.
-    if (!(session.user as any)?.hasPermission?.('update_user') && params.userId !== session.user.id) {
+    // SECURITY: add a robust server-side authorization check here to verify the user's permissions securely.
+    if (!session?.user?.id || params.userId !== session.user.id) {
       return new Response(null, { status: 403 })
     }
 
@@ -38,6 +38,7 @@ export async function PATCH(
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
+    // SECURITY: Before rendering sanitizedName in an HTML context, ensure it is passed through a context-aware encoding function provided by the framework or a trusted library.
     const sanitizedName = escapeHtml(String(payload.name).trim())
 
     // Update the user using parameterized query

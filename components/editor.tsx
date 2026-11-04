@@ -87,7 +87,11 @@ export function Editor({ post }: EditorProps) {
   async function onSubmit(data: FormData) {
     setIsSaving(true)
 
-    const blocks = DOMPurify.sanitize(await ref.current?.save())
+    // Before saving the content on the server, add server-side sanitization and validation to ensure no malicious scripts are stored or rendered.
+    const blocks = DOMPurify.sanitize(await ref.current?.save(), {
+      ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "h1", "h2", "h3", "ul", "ol", "li", "code", "pre"],
+      ALLOWED_ATTR: ["href", "class"],
+    })
 
     const response = await fetch(`/api/posts/${post.id}`, {
       method: "PATCH",

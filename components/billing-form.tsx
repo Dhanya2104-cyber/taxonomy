@@ -33,13 +33,20 @@ export function BillingForm({
     event.preventDefault()
     setIsLoading(!isLoading)
 
-        // Get a Stripe session URL with CSRF protection
-    const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : null
+        // SECURITY: validate CSRF token server-side before processing the request.
+    const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : "token"
+    if (!csrfToken) {
+      return toast({
+        title: "Security validation error.",
+        description: "Missing CSRF token",
+        variant: "destructive",
+      })
+    }
     const response = await fetch("/api/users/stripe", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken || "",
+        "X-CSRF-Token": csrfToken,
       },
     })
     if (!response?.ok) {
@@ -54,6 +61,7 @@ export function BillingForm({
     // This could be a checkout page for initial upgrade.
     // Or portal to manage existing subscription.
         const session = await response.json()
+    // SECURITY: validate session.url against a strict allow-list before redirecting.
     if (session?.url && new URL(session.url).hostname === "checkout.stripe.com" && session.url.startsWith("https://checkout.stripe.com/")) {
       window.location.href = session.url
     } else {

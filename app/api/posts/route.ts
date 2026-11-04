@@ -32,7 +32,7 @@ export async function GET() {
       },
     })
 
-    // SECURITY: Ensure the service is deployed with HTTPS to encrypt data in transit.
+    // SECURITY: Ensure the service is deployed with HTTPS and verify that all endpoints enforce transport encryption.
     return new Response(JSON.stringify(posts))
   } catch (error) {
     console.error(error);

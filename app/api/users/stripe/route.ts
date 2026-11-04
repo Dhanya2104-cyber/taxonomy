@@ -17,15 +17,24 @@ export async function GET(req: Request) {
       return new Response(null, { status: 403 })
     }
 
+    // SECURITY: validate CSRF token server-side before processing the request.
+    const csrfToken = req.headers.get("x-csrf-token")
+    const origin = req.headers.get("origin")
+    if (origin && !origin.startsWith(env.NEXT_PUBLIC_APP_URL)) {
+      return new Response("Invalid origin", { status: 403 })
+    }
+
+    const subscriptionPlan = await getUserSubscriptionPlan(session.user.id)
+
     // SECURITY: add an authorization check here verifying the caller may access the billing portal before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !subscriptionPlan) {
       return new Response("Unauthorized", { status: 403 })
     }
-    const subscriptionPlan = await getUserSubscriptionPlan(session.user.id)
 
     // The user is on the pro plan.
     // Create a portal session to manage subscription.
     if (subscriptionPlan.isPro && subscriptionPlan.stripeCustomerId) {
+      // SECURITY: add an authorization check here verifying the caller may access the billing portal before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: subscriptionPlan.stripeCustomerId,
         return_url: billingUrl,

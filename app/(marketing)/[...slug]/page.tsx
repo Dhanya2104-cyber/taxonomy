@@ -45,7 +45,7 @@ export async function generateMetadata({
 
   const ogUrl = new URL(`${url}/api/og`)
   // SECURITY: Use a robust HTML sanitizer library like DOMPurify to sanitize page.title
-  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(page.title))))
+  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(page.title, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })))
   ogUrl.searchParams.set("type", siteConfig.name)
   ogUrl.searchParams.set("mode", "light")
 

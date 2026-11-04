@@ -49,8 +49,10 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     // SECURITY: Verify webhook event is authorized for the user
+    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     // SECURITY: Ensure validatedUserId is sanitized and parameterized before use
     const sanitizedUserId = encodeURIComponent(validatedUserId)
+    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })
@@ -66,6 +68,7 @@ export async function POST(req: Request) {
     )
 
     // Update the user stripe info in our database.
+    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     await db.user.update({
       where: {
         id: sanitizedUserId,
