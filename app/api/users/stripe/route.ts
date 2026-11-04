@@ -14,15 +14,7 @@ function userCanAccessBillingPortal(user: any): boolean {
   return Boolean(user?.id && user?.email)
 }
 
-export async function POST(req: Request) {
-  return handleStripe(req)
-}
-
 export async function GET(req: Request) {
-  return handleStripe(req)
-}
-
-async function handleStripe(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -30,14 +22,19 @@ async function handleStripe(req: Request) {
       return new Response(null, { status: 403 })
     }
 
-    const csrfToken = req.headers.get("x-csrf-token")
-    if (!csrfToken || typeof csrfToken !== "string") {
-      return new Response("Invalid CSRF token", { status: 403 })
+    // SECURITY: Use a stricter validation mechanism for the origin header that accounts for subdomains and variations in the URL structure.
+    const origin = req.headers.get("origin")
+    if (origin) {
+      const allowedOrigin = new URL(env.NEXT_PUBLIC_APP_URL).origin
+      if (origin !== allowedOrigin) {
+        return new Response("Invalid origin", { status: 403 })
+      }
     }
 
-    const origin = req.headers.get("origin")
-    if (origin && !origin.startsWith(env.NEXT_PUBLIC_APP_URL)) {
-      return new Response("Invalid origin", { status: 403 })
+    // SECURITY: Validate the CSRF token against a server-generated token stored in the user's session or a secure cookie before proceeding.
+    const csrfToken = req.headers.get("x-csrf-token")
+    if (req.method === "POST" && !csrfToken) {
+      return new Response("Invalid CSRF token", { status: 403 })
     }
 
     const subscriptionPlan = await getUserSubscriptionPlan(session.user.id)

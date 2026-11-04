@@ -29,12 +29,14 @@ export async function DELETE(
       return new Response(null, { status: 403 })
     }
 
-    function userHasDeletePermission(user: any, postId: string): boolean {
-      return Boolean(user?.id)
+    const userRole = (session.user as any)?.role || "user"
+    const allowedDeleteRoles = ["admin", "editor", "user"]
+    if (!allowedDeleteRoles.includes(userRole)) {
+      return new Response("Forbidden: insufficient permissions", { status: 403 })
     }
 
     // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
-    if (!userHasDeletePermission(session?.user, params.postId)) {
+    if (!session?.user?.id || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
     }
 

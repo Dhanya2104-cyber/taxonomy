@@ -15,7 +15,7 @@ const interBold = fetch(
 
 function sanitize(input: any): any {
   if (typeof input === "string") {
-    return input.replace(/<[^>]*>?/gm, "").replace(/["'&]/g, "").trim()
+    return DOMPurify.sanitize(input)
   }
   if (typeof input === "object" && input !== null) {
     const res: any = {}

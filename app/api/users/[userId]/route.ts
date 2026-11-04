@@ -1,16 +1,18 @@
 import { getServerSession } from "next-auth/next"
 import { z } from "zod"
+import DOMPurify from "isomorphic-dompurify"
 
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
 
-function contextAwareEncode(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
-}
-
 function userHasPermissionToUpdateUser(user: any, targetUserId: string): boolean {
-  return Boolean(user?.id && user.id === targetUserId)
+  if (!user?.id || user.id !== targetUserId) {
+    return false
+  }
+  const role = (user as any)?.role || "user"
+  const allowedRoles = ["admin", "editor", "user"]
+  return allowedRoles.includes(role)
 }
 
 const routeContextSchema = z.object({
@@ -38,17 +40,24 @@ export async function PATCH(
       return new Response(null, { status: 403 })
     }
 
+    // Check user in database
+    const existingUser = await db.user.findUnique({
+      where: {
+        id: params.userId,
+      },
+      select: {
+        id: true,
+      },
+    })
+    if (!existingUser || existingUser.id !== session.user.id) {
+      return new Response(null, { status: 403 })
+    }
+
     // Get the request body and validate it.
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
-    // SECURITY: replace escapeHtml with a context-aware encoding function provided by the framework or a trusted library.
-    const sanitizedName = contextAwareEncode(String(payload.name).trim())
-
-    // Update the user using parameterized query
-    if (!userHasPermissionToUpdateUser(session.user, params.userId)) {
-      return new Response(null, { status: 403 })
-    }
+    const sanitizedName = DOMPurify.sanitize(String(payload.name).trim())
 
     await db.user.update({
       where: {

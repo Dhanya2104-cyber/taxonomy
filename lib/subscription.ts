@@ -6,16 +6,23 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
-function callerHasSubscriptionAccess(callerUser: any, targetUserId: string): boolean {
-  return Boolean(callerUser?.id && callerUser.id === targetUserId)
+function userHasPermission(user: any, action: string, targetUserId: string): boolean {
+  return Boolean(user?.id && user.id === targetUserId)
+}
+
+function maskSensitiveData(val: string | null | undefined): string | null {
+  if (!val) return null
+  return val.length > 8 ? `${val.slice(0, 4)}...${val.slice(-4)}` : "********"
 }
 
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !callerHasSubscriptionAccess(session.user, userId)) {
-    throw new Error("Unauthorized access to user subscription data")
+
+  // SECURITY: Add a role-based or permission-based access control check here
+  if (!session?.user || !userHasPermission(session.user, 'view_subscription', userId)) {
+    throw new Error('Forbidden: insufficient permissions');
   }
 
   if (!userId || typeof userId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
@@ -48,6 +55,8 @@ export async function getUserSubscriptionPlan(
   return {
     ...plan,
     ...user,
+    stripeCustomerId: maskSensitiveData(user.stripeCustomerId),
+    stripeSubscriptionId: maskSensitiveData(user.stripeSubscriptionId),
     stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd?.getTime(),
     isPro,
   }

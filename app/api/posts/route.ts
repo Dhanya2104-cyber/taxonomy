@@ -67,15 +67,10 @@ export async function POST(req: Request) {
 
     const json = await req.json()
     const body = postCreateSchema.parse(json)
-    function escapeInput(val: string): string {
-      return val.replace(/['"\\\b\0\n\r\t]/g, '')
-    }
-    const sanitizedTitle = escapeInput(String(body.title).trim())
-    const sanitizedContent = escapeInput(String(body.content || "").trim())
     const post = await db.post.create({
       data: {
-        title: sanitizedTitle,
-        content: sanitizedContent,
+        title: body.title,
+        content: body.content || "",
         authorId: session.user.id,
       },
       select: {

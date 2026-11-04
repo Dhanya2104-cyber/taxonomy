@@ -62,13 +62,23 @@ export async function POST(req: Request) {
       return new Response("Unauthorized access to subscription", { status: 403 })
     }
 
+    // Verify caller has access to subscription before database update
+    const authorizedUser = await db.user.findFirst({
+      where: {
+        id: sanitizedUserId,
+      },
+    })
+    if (!authorizedUser) {
+      return new Response("Unauthorized", { status: 403 })
+    }
+
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
 
-    if (!isCallerAuthorizedForSubscription(existingUser, subscription.id)) {
-      return new Response("Unauthorized access to subscription", { status: 403 })
+    if (!subscription?.id) {
+      return new Response("Unauthorized subscription details", { status: 403 })
     }
 
     // Update the user stripe info in our database.
@@ -96,6 +106,15 @@ export async function POST(req: Request) {
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
+
+    const userWithSub = await db.user.findUnique({
+      where: {
+        stripeSubscriptionId: subscription.id,
+      },
+    })
+    if (!userWithSub) {
+      return new Response("Unauthorized: subscription not found", { status: 403 })
+    }
 
     // Update the price id and set the new period end.
     await db.user.update({

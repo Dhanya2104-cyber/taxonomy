@@ -33,21 +33,7 @@ export function BillingForm({
     event.preventDefault()
     setIsLoading(!isLoading)
 
-        const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : null
-    if (!csrfToken || typeof csrfToken !== "string" || csrfToken.length < 10) {
-      return toast({
-        title: "Request verification failed.",
-        description: "Missing or invalid CSRF token. Please refresh the page.",
-        variant: "destructive",
-      })
-    }
-    const response = await fetch("/api/users/stripe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-      },
-    })
+        const response = await fetch("/api/users/stripe")
     if (!response?.ok) {
       return toast({
         title: "Something went wrong.",
@@ -61,7 +47,8 @@ export function BillingForm({
     // Or portal to manage existing subscription.
         const session = await response.json()
     // SECURITY: validate session.url against a strict allow-list before redirecting.
-    if (session?.url && new URL(session.url).hostname === "checkout.stripe.com" && session.url.startsWith("https://checkout.stripe.com/")) {
+    const allowedHosts = ["checkout.stripe.com"]
+    if (session?.url && allowedHosts.includes(new URL(session.url).hostname) && session.url.startsWith("https://checkout.stripe.com/")) {
       window.location.href = session.url
     } else {
       window.location.href = "/dashboard/billing"

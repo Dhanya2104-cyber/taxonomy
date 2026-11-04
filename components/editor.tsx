@@ -89,8 +89,8 @@ export function Editor({ post }: EditorProps) {
 
     // Before saving the content on the server, add server-side sanitization and validation to ensure no malicious scripts are stored or rendered.
     const blocks = DOMPurify.sanitize(await ref.current?.save(), {
-      ALLOWED_TAGS: [], // Consider disallowing all tags and only allowing safe text content
-      ALLOWED_ATTR: [], // Consider disallowing all attributes
+      ALLOWED_TAGS: ['b', 'i', 'u', 'a', 'p', 'ul', 'ol', 'li'],
+      ALLOWED_ATTR: ['href', 'target'],
     })
 
     const response = await fetch(`/api/posts/${post.id}`, {

@@ -43,7 +43,12 @@ export const authOptions: NextAuthOptions = {
         if (!identifier || typeof identifier !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
           throw new Error("Invalid email identifier")
         }
-        const validatedUrl = new URL(url).toString()
+        const parsedUrl = new URL(url)
+        const allowedHosts = [new URL(env.NEXT_PUBLIC_APP_URL).hostname, "localhost", "127.0.0.1"]
+        if (!allowedHosts.includes(parsedUrl.hostname)) {
+          throw new Error("Invalid redirect URL host")
+        }
+        const validatedUrl = parsedUrl.toString()
 
         const user = await db.user.findUnique({
           where: {
