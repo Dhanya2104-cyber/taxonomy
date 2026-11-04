@@ -29,10 +29,7 @@ export default withAuth(
       // Validate 'from' to ensure it only contains allowed paths
       const allowedPaths = ["/dashboard", "/editor", "/login", "/register"];
       if (!allowedPaths.includes(from)) {
-        // SECURITY: Ensure 'from' is strictly validated and sanitized
         from = '/dashboard';
-      } else {
-        from = '/dashboard'; // SECURITY: Ensure 'from' is strictly validated and sanitized
       }
 
       return NextResponse.redirect(

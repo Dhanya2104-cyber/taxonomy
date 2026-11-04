@@ -27,6 +27,8 @@ export async function PATCH(
     }
 
     // SECURITY: Add a server-side authorization check here to ensure the user has the necessary permissions to update the specified user account.
+    // SECURITY: Add an authorization check here verifying the caller has permission to update the specified user account.
+    // Example: checkPermission(session.user.id, params.userId)
     if (!session?.user?.id || !userHasUpdatePermission(session.user, params.userId)) {
       return new Response(null, { status: 403 })
     }

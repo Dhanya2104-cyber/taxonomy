@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 function sanitizeHtml(str: string): string {
-  return str.replace(/<[^>]*>?/gm, '').replace(/["'&]/g, '')
+  return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
 }
 
 import { notFound } from "next/navigation"

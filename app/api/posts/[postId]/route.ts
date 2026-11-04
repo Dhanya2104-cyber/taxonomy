@@ -92,9 +92,8 @@ export async function PATCH(
 async function verifyCurrentUserHasAccessToPost(postId: string) {
   const session = await getServerSession(authOptions)
 
-  // SECURITY: add a check to ensure the session is valid:
   if (!session || !session.user || !session.user.id) {
-    return false
+    return false;
   }
 
   const count = await db.post.count({

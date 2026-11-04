@@ -27,12 +27,14 @@ export async function GET(req: Request) {
       return new Response("Unauthorized", { status: 403 })
     }
 
-    // SECURITY: Use a stricter validation mechanism for the origin header that accounts for subdomains and variations in the URL structure.
     // SECURITY: Add an authorization check here ensuring the caller is authenticated and authorized to access this endpoint before validating the origin header.
+    if (!session?.user?.id) {
+      return new Response("Unauthorized", { status: 403 })
+    }
     const origin = req.headers.get("origin")
     if (origin) {
       const allowedOrigin = new URL(env.NEXT_PUBLIC_APP_URL).origin
-      if (!origin.endsWith(allowedOrigin)) {
+      if (origin !== allowedOrigin) {
         return new Response("Invalid origin", { status: 403 })
       }
     }

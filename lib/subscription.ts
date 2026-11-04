@@ -30,7 +30,7 @@ export async function getUserSubscriptionPlan(
     throw new Error("Unauthorized access to subscription details")
   }
 
-  // SECURITY: Before line 29, add a check that verifies the authenticated caller has access to the subscription data for the user identified by userId; this repo's specific authorization API was not visible in this snippet.
+  // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
   if (!isUserAuthorizedForSubscription(session?.user, userId)) {
     throw new Error("Forbidden: insufficient permissions")
   }

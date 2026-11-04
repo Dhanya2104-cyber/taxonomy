@@ -76,12 +76,16 @@ export const authOptions: NextAuthOptions = {
         // Consider adding cryptographic validation for templateId
 
         // SECURITY: Add stricter validation and sanitization for validatedUrl before using it in sendEmailWithTemplate.
+        function sanitizeEmailUrl(u: string): string {
+          return encodeURI(u).replace(/[<>'"]/g, "")
+        }
+        const sanitizedUrl = sanitizeEmailUrl(validatedUrl)
         const result = await postmarkClient.sendEmailWithTemplate({
           TemplateId: parsedTemplateId,
           To: identifier,
           From: provider.from as string,
           TemplateModel: {
-            action_url: validatedUrl,
+            action_url: sanitizedUrl,
             product_name: siteConfig.name,
           },
           Headers: [
@@ -117,9 +121,9 @@ export const authOptions: NextAuthOptions = {
         return Boolean(t?.sub || t?.id || t?.email)
       }
 
-      // SECURITY: add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
+      // SECURITY: Add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
       if (!isTokenAuthorizedForUser(token, user)) {
-        return token
+        throw new Error('Unauthorized access')
       }
 
       const dbUser = await db.user.findFirst({
