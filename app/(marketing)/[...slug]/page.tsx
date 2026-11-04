@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 function sanitizeHtml(str: string): string {
   return str.replace(/<[^>]*>?/gm, '').replace(/["'&]/g, '')
 }
@@ -44,7 +45,7 @@ export async function generateMetadata({
 
   const ogUrl = new URL(`${url}/api/og`)
   // SECURITY: Use a robust HTML sanitizer library like DOMPurify to sanitize page.title
-  ogUrl.searchParams.set("heading", encodeURIComponent(sanitizeHtml(page.title)))
+  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(page.title))))
   ogUrl.searchParams.set("type", siteConfig.name)
   ogUrl.searchParams.set("mode", "light")
 

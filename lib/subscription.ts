@@ -4,18 +4,11 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
-// SECURITY: Add a proper authorization check here
-// Example: verifyCallerHasAccessToUser(userId);
-function verifyCallerHasAccessToUser(userId: string): boolean {
-  return typeof userId === "string" && userId.trim().length > 0 && /^[a-zA-Z0-9_-]+$/.test(userId)
-}
-
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  // SECURITY: Add a proper authorization check here
-  // Example: verifyCallerHasAccessToUser(userId);
-  if (!verifyCallerHasAccessToUser(userId)) {
+  // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
+  if (!userId || typeof userId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
     throw new Error("Unauthorized access to subscription details")
   }
 

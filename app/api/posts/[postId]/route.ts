@@ -20,17 +20,8 @@ export async function DELETE(
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
 
-    // SECURITY: Add a check that verifies the user's role or permissions for post deletion.
-    const session = await getServerSession(authOptions)
+    // SECURITY: Add a check that verifies the user's role or permissions for post deletion; this repo's specific authorization API was not visible in this snippet.
     if (!session?.user?.id) {
-      return new Response(null, { status: 403 })
-    }
-
-    function userHasEditPermission(user: any, postId: string): boolean {
-      return Boolean(user?.id)
-    }
-    // SECURITY: Add a role or permission check here to ensure the user is authorized to edit the post.
-    if (!userHasEditPermission(session?.user, params.postId)) {
       return new Response(null, { status: 403 })
     }
     // Check if the user has access to this post.

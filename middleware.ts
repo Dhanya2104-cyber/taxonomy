@@ -26,6 +26,11 @@ export default withAuth(
       if (!from.startsWith("/")) {
         from = "/dashboard";
       }
+      // Validate 'from' to ensure it only contains allowed paths
+      const allowedPaths = ["/dashboard", "/editor", "/login", "/register"];
+      if (!allowedPaths.includes(from)) {
+        from = "/dashboard";
+      }
 
       return NextResponse.redirect(
         new URL(`/login?from=${encodeURIComponent(from)}`, req.url)

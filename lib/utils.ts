@@ -17,10 +17,10 @@ export function formatDate(input: string | number): string {
 }
 
 export function absoluteUrl(path: string) {
-  if (!path.startsWith("/")) {
-    const normalizedPath = new URL(path, env.NEXT_PUBLIC_APP_URL).pathname;
-    return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`;
+  if (!env.NEXT_PUBLIC_APP_URL.startsWith('https://')) {
+    throw new Error('Invalid base URL');
   }
-  const normalizedPath = new URL(path, env.NEXT_PUBLIC_APP_URL).pathname;
+  const sanitizedPath = path.replace(/[^a-zA-Z0-9/_-]/g, '');
+  const normalizedPath = new URL(sanitizedPath.startsWith('/') ? sanitizedPath : `/${sanitizedPath}`, env.NEXT_PUBLIC_APP_URL).pathname;
   return `${env.NEXT_PUBLIC_APP_URL}${normalizedPath}`;
 }

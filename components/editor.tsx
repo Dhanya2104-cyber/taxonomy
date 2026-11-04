@@ -87,9 +87,7 @@ export function Editor({ post }: EditorProps) {
   async function onSubmit(data: FormData) {
     setIsSaving(true)
 
-    // Before line 69, sanitize the blocks variable using a library like DOMPurify or a similar tool to remove potentially malicious scripts.
-    const blocks = await ref.current?.save()
-    if (blocks && typeof blocks === 'object') { DOMPurify.sanitize(JSON.stringify(blocks)); }
+    const blocks = DOMPurify.sanitize(await ref.current?.save())
 
     const response = await fetch(`/api/posts/${post.id}`, {
       method: "PATCH",

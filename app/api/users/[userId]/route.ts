@@ -5,6 +5,10 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+}
+
 const routeContextSchema = z.object({
   params: z.object({
     userId: z.string(),
@@ -25,20 +29,16 @@ export async function PATCH(
       return new Response(null, { status: 403 })
     }
 
-    if (session.user && !(session.user as any).hasPermission) {
-      (session.user as any).hasPermission = (_perm: string) => true
-    }
-
-    // SECURITY: Verify the user has explicit permissions to update the specified user record.
-    if (!(session.user as any)?.hasPermission?.('update_user')) {
-      return new Response(null, { status: 403 });
+    // SECURITY: Remove dynamic assignment of permissions and verify permissions securely server-side.
+    if (!(session.user as any)?.hasPermission?.('update_user') && params.userId !== session.user.id) {
+      return new Response(null, { status: 403 })
     }
 
     // Get the request body and validate it.
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
-    const sanitizedName = String(payload.name).trim()
+    const sanitizedName = escapeHtml(String(payload.name).trim())
 
     // Update the user using parameterized query
     await db.user.update({

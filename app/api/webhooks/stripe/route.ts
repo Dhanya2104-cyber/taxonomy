@@ -56,6 +56,10 @@ export async function POST(req: Request) {
       return new Response("Unauthorized: user not found", { status: 403 })
     }
 
+    // SECURITY: add a check that the authenticated caller has access to the subscription identified by session.subscription; this repo's specific authorization API was not visible in this snippet.
+    if (!session?.subscription || typeof session.subscription !== "string") {
+      return new Response("Unauthorized: invalid subscription", { status: 400 })
+    }
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
@@ -78,6 +82,10 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "invoice.payment_succeeded") {
+    // SECURITY: add a check that the authenticated caller has access to the subscription identified by session.subscription; this repo's specific authorization API was not visible in this snippet.
+    if (!session?.subscription || typeof session.subscription !== "string") {
+      return new Response("Unauthorized: invalid subscription", { status: 400 })
+    }
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
