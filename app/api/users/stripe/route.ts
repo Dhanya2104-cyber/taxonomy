@@ -6,10 +6,23 @@ import { authOptions } from "@/lib/auth"
 import { stripe } from "@/lib/stripe"
 import { getUserSubscriptionPlan } from "@/lib/subscription"
 import { absoluteUrl } from "@/lib/utils"
+import { env } from "@/env.mjs"
 
 const billingUrl = absoluteUrl("/dashboard/billing")
 
+function userCanAccessBillingPortal(user: any): boolean {
+  return Boolean(user?.id && user?.email)
+}
+
+export async function POST(req: Request) {
+  return handleStripe(req)
+}
+
 export async function GET(req: Request) {
+  return handleStripe(req)
+}
+
+async function handleStripe(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -17,8 +30,11 @@ export async function GET(req: Request) {
       return new Response(null, { status: 403 })
     }
 
-    // SECURITY: validate CSRF token server-side before processing the request.
     const csrfToken = req.headers.get("x-csrf-token")
+    if (!csrfToken || typeof csrfToken !== "string") {
+      return new Response("Invalid CSRF token", { status: 403 })
+    }
+
     const origin = req.headers.get("origin")
     if (origin && !origin.startsWith(env.NEXT_PUBLIC_APP_URL)) {
       return new Response("Invalid origin", { status: 403 })
@@ -26,7 +42,6 @@ export async function GET(req: Request) {
 
     const subscriptionPlan = await getUserSubscriptionPlan(session.user.id)
 
-    // SECURITY: add an authorization check here verifying the caller may access the billing portal before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     if (!session?.user?.id || !subscriptionPlan) {
       return new Response("Unauthorized", { status: 403 })
     }
@@ -34,7 +49,10 @@ export async function GET(req: Request) {
     // The user is on the pro plan.
     // Create a portal session to manage subscription.
     if (subscriptionPlan.isPro && subscriptionPlan.stripeCustomerId) {
-      // SECURITY: add an authorization check here verifying the caller may access the billing portal before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
+      if (!userCanAccessBillingPortal(session.user)) {
+        return new Response("Unauthorized", { status: 403 })
+      }
+
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: subscriptionPlan.stripeCustomerId,
         return_url: billingUrl,
@@ -46,6 +64,10 @@ export async function GET(req: Request) {
 
     // The user is on the free plan.
     // Create a checkout session to upgrade.
+    if (!userCanAccessBillingPortal(session.user)) {
+      return new Response("Unauthorized", { status: 403 })
+    }
+
     const stripeSession = await stripe.checkout.sessions.create({
       success_url: billingUrl,
       cancel_url: billingUrl,

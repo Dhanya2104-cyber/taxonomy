@@ -9,7 +9,13 @@ import { siteConfig } from "@/config/site"
 import { db } from "@/lib/db"
 
 const secretsManager = {
-  get: (key: string): string => (env as any)[key] || "",
+  get: (key: string): string => {
+    const val = (env as any)[key]
+    if (!val || typeof val !== "string" || val.length === 0) {
+      throw new Error(`Secret ${key} is invalid or missing`)
+    }
+    return val
+  },
 }
 
 // Use a secrets manager to securely inject the POSTMARK_API_TOKEN
@@ -34,6 +40,11 @@ export const authOptions: NextAuthOptions = {
     EmailProvider({
       from: env.SMTP_FROM,
       sendVerificationRequest: async ({ identifier, url, provider }) => {
+        if (!identifier || typeof identifier !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+          throw new Error("Invalid email identifier")
+        }
+        const validatedUrl = new URL(url).toString()
+
         const user = await db.user.findUnique({
           where: {
             email: identifier,
@@ -63,7 +74,7 @@ export const authOptions: NextAuthOptions = {
           To: identifier,
           From: provider.from as string,
           TemplateModel: {
-            action_url: url,
+            action_url: validatedUrl,
             product_name: siteConfig.name,
           },
           Headers: [

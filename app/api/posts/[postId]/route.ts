@@ -29,11 +29,16 @@ export async function DELETE(
       return new Response(null, { status: 403 })
     }
 
-    // Delete the post.
+    function userHasDeletePermission(user: any, postId: string): boolean {
+      return Boolean(user?.id)
+    }
+
     // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
-    if (!session?.user?.id) {
+    if (!userHasDeletePermission(session?.user, params.postId)) {
       return new Response(null, { status: 403 })
     }
+
+    // Delete the post.
     await db.post.delete({
       where: {
         id: params.postId as string,

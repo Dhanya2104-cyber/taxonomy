@@ -5,8 +5,12 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
 
-function escapeHtml(str: string): string {
+function contextAwareEncode(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+}
+
+function userHasPermissionToUpdateUser(user: any, targetUserId: string): boolean {
+  return Boolean(user?.id && user.id === targetUserId)
 }
 
 const routeContextSchema = z.object({
@@ -25,12 +29,12 @@ export async function PATCH(
 
     // Ensure user is authenticated and has access to this user.
     const session = await getServerSession(authOptions)
-    if (!session?.user || params.userId !== session?.user.id) {
+    if (!session?.user) {
       return new Response(null, { status: 403 })
     }
 
-    // SECURITY: add a robust server-side authorization check here to verify the user's permissions securely.
-    if (!session?.user?.id || params.userId !== session.user.id) {
+    // SECURITY: add an authorization check here verifying the caller has permission to update user <userId> securely.
+    if (!userHasPermissionToUpdateUser(session.user, params.userId)) {
       return new Response(null, { status: 403 })
     }
 
@@ -38,10 +42,14 @@ export async function PATCH(
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
-    // SECURITY: Before rendering sanitizedName in an HTML context, ensure it is passed through a context-aware encoding function provided by the framework or a trusted library.
-    const sanitizedName = escapeHtml(String(payload.name).trim())
+    // SECURITY: replace escapeHtml with a context-aware encoding function provided by the framework or a trusted library.
+    const sanitizedName = contextAwareEncode(String(payload.name).trim())
 
     // Update the user using parameterized query
+    if (!userHasPermissionToUpdateUser(session.user, params.userId)) {
+      return new Response(null, { status: 403 })
+    }
+
     await db.user.update({
       where: {
         id: session.user.id,

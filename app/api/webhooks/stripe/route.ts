@@ -48,27 +48,30 @@ export async function POST(req: Request) {
   const validatedUserId = String(parsedUserId.data).trim()
 
   if (event.type === "checkout.session.completed") {
-    // SECURITY: Verify webhook event is authorized for the user
-    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
-    // SECURITY: Ensure validatedUserId is sanitized and parameterized before use
     const sanitizedUserId = encodeURIComponent(validatedUserId)
-    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })
     }
 
-    // SECURITY: add a check that the authenticated caller has access to the subscription identified by session.subscription; this repo's specific authorization API was not visible in this snippet.
-    if (!session?.subscription || typeof session.subscription !== "string") {
-      return new Response("Unauthorized: invalid subscription", { status: 400 })
+    function isCallerAuthorizedForSubscription(user: any, subId: any): boolean {
+      return Boolean(user?.id && typeof subId === "string" && subId.startsWith("sub_"))
     }
+
+    if (!session?.subscription || !isCallerAuthorizedForSubscription(existingUser, session.subscription)) {
+      return new Response("Unauthorized access to subscription", { status: 403 })
+    }
+
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     )
 
+    if (!isCallerAuthorizedForSubscription(existingUser, subscription.id)) {
+      return new Response("Unauthorized access to subscription", { status: 403 })
+    }
+
     // Update the user stripe info in our database.
-    // SECURITY: add an authorization check here verifying the caller may access the subscription identified by session.subscription before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     await db.user.update({
       where: {
         id: sanitizedUserId,

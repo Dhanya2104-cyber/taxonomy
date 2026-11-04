@@ -33,12 +33,11 @@ export function BillingForm({
     event.preventDefault()
     setIsLoading(!isLoading)
 
-        // SECURITY: validate CSRF token server-side before processing the request.
-    const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : "token"
-    if (!csrfToken) {
+        const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : null
+    if (!csrfToken || typeof csrfToken !== "string" || csrfToken.length < 10) {
       return toast({
-        title: "Security validation error.",
-        description: "Missing CSRF token",
+        title: "Request verification failed.",
+        description: "Missing or invalid CSRF token. Please refresh the page.",
         variant: "destructive",
       })
     }

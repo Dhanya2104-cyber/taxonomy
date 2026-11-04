@@ -32,7 +32,7 @@ CREATE TABLE `sessions` (
 CREATE TABLE `users` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NULL,
-    `email` VARCHAR(191) NULL, -- SECURITY: Implement encryption for email addresses before insertion and decryption after retrieval.
+    `email` VARCHAR(191) NULL, -- SECURITY: Encrypt email addresses before insertion and decrypt them after retrieval using AES-256 or equivalent.
     `emailVerified` DATETIME(3) NULL,
     `image` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -43,11 +43,11 @@ CREATE TABLE `users` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ALTER TABLE `users` MODIFY `email` VARBINARY(255) NULL;
--- SECURITY: Implement encryption for email addresses before insertion and decryption after retrieval.
+-- SECURITY: Encrypt email addresses before insertion and decrypt them after retrieval using AES-256 or equivalent.
 
 -- CreateTable
 CREATE TABLE `verification_tokens` (
-    `identifier` VARCHAR(191) NOT NULL, -- SECURITY: Implement encryption for email addresses before insertion and decryption after retrieval.
+    `identifier` VARCHAR(191) NOT NULL, -- SECURITY: Encrypt email addresses before insertion and decrypt them after retrieval using AES-256 or equivalent.
     `token` VARCHAR(191) NOT NULL,
     `expires` DATETIME(3) NOT NULL,
 

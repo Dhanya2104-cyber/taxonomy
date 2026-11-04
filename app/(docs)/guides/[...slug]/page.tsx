@@ -1,3 +1,7 @@
+function validateInput(str: string): string {
+  return typeof str === "string" ? str.replace(/['"<>]/g, '').trim() : ""
+}
+
 function encodeHtmlEntities(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
 }
@@ -52,7 +56,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(encodeHtmlEntities(guide.title))) // Ensure guide.title is validated and sanitized before this point
+  ogUrl.searchParams.set("heading", encodeURIComponent(encodeHtmlEntities(validateInput(guide.title)))) // Ensure guide.title is validated and sanitized before this point
   ogUrl.searchParams.set("type", "Guide")
   ogUrl.searchParams.set("mode", "dark")
 

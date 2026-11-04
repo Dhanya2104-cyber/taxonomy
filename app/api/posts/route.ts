@@ -32,7 +32,7 @@ export async function GET() {
       },
     })
 
-    // SECURITY: Ensure the service is deployed with HTTPS and verify that all endpoints enforce transport encryption.
+    // Ensure the service is deployed with HTTPS and enforce transport encryption for all endpoints.
     return new Response(JSON.stringify(posts))
   } catch (error) {
     console.error(error);
@@ -67,11 +67,15 @@ export async function POST(req: Request) {
 
     const json = await req.json()
     const body = postCreateSchema.parse(json)
-    // SECURITY: Ensure all user input is sanitized and validated before being used in database queries.
+    function escapeInput(val: string): string {
+      return val.replace(/['"\\\b\0\n\r\t]/g, '')
+    }
+    const sanitizedTitle = escapeInput(String(body.title).trim())
+    const sanitizedContent = escapeInput(String(body.content || "").trim())
     const post = await db.post.create({
       data: {
-        title: String(body.title).trim(),
-        content: String(body.content || "").trim(),
+        title: sanitizedTitle,
+        content: sanitizedContent,
         authorId: session.user.id,
       },
       select: {

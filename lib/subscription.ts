@@ -1,19 +1,27 @@
 // @ts-nocheck
 // TODO: Fix this when we turn strict mode on.
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
+function callerHasSubscriptionAccess(callerUser: any, targetUserId: string): boolean {
+  return Boolean(callerUser?.id && callerUser.id === targetUserId)
+}
+
 export async function getUserSubscriptionPlan(
   userId: string
 ): Promise<UserSubscriptionPlan> {
-  // SECURITY: add a check that the authenticated caller has access to the user identified by userId; this repo's specific authorization API was not visible in this snippet.
-  // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
+  const session = await getServerSession(authOptions)
+  if (!session?.user || !callerHasSubscriptionAccess(session.user, userId)) {
+    throw new Error("Unauthorized access to user subscription data")
+  }
+
   if (!userId || typeof userId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(userId)) {
     throw new Error("Unauthorized access to subscription details")
   }
 
-  // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
   const user = await db.user.findFirst({
     where: {
       id: userId,
