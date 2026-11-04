@@ -1,23 +1,9 @@
 import { getServerSession } from "next-auth/next"
 import { z } from "zod"
-import DOMPurify from "isomorphic-dompurify"
 
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userNameSchema } from "@/lib/validations/user"
-
-function hasGranularPermission(user: any, permission: string, targetUserId: string): boolean {
-  if (!user?.id || user.id !== targetUserId) {
-    return false
-  }
-  const permissionsByRole: Record<string, string[]> = {
-    admin: ["user:update", "user:delete", "user:read"],
-    editor: ["user:update", "user:read"],
-    user: ["user:update", "user:read"],
-  }
-  const role = (user as any)?.role || "user"
-  return permissionsByRole[role]?.includes(permission) ?? false
-}
 
 const routeContextSchema = z.object({
   params: z.object({
@@ -33,28 +19,9 @@ export async function PATCH(
     // Validate the route context.
     const { params } = routeContextSchema.parse(context)
 
-    // Ensure user is authenticated and has access to this user.
+    // Users can only update their own account.
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return new Response(null, { status: 403 })
-    }
-
-    // SECURITY: Implement granular role-based access control (RBAC) to verify permissions for updating user details.
-    // SECURITY: add an authorization check here verifying the caller has permission to update user <userId> securely.
-    if (!hasGranularPermission(session.user, "user:update", params.userId)) {
-      return new Response(null, { status: 403 })
-    }
-
-    // Check user in database
-    const existingUser = await db.user.findUnique({
-      where: {
-        id: params.userId,
-      },
-      select: {
-        id: true,
-      },
-    })
-    if (!existingUser || existingUser.id !== session.user.id) {
+    if (!session?.user?.id || session.user.id !== params.userId) {
       return new Response(null, { status: 403 })
     }
 
@@ -62,14 +29,12 @@ export async function PATCH(
     const body = await req.json()
     const payload = userNameSchema.parse(body)
 
-    const sanitizedName = DOMPurify.sanitize(String(payload.name).trim())
-
     await db.user.update({
       where: {
         id: session.user.id,
       },
       data: {
-        name: sanitizedName,
+        name: payload.name.trim(),
       },
     })
 
