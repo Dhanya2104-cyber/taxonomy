@@ -5,7 +5,6 @@ CREATE TABLE `accounts` (
     `type` VARCHAR(191) NOT NULL,
     `provider` VARCHAR(191) NOT NULL,
     `providerAccountId` VARCHAR(191) NOT NULL,
-    `access_token` TEXT NULL,
     `expires_at` INTEGER NULL,
     `token_type` VARCHAR(191) NULL,
     `scope` VARCHAR(191) NULL,
