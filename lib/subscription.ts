@@ -6,13 +6,13 @@ import { UserSubscriptionPlan } from "types"
 import { freePlan, proPlan } from "@/config/subscriptions"
 import { db } from "@/lib/db"
 
-function userHasPermission(user: any, action: string, targetUserId: string): boolean {
+function isUserAuthorizedForSubscription(user: any, targetUserId: string): boolean {
   return Boolean(user?.id && user.id === targetUserId)
 }
 
 function maskSensitiveData(val: string | null | undefined): string | null {
   if (!val) return null
-  return val.length > 8 ? `${val.slice(0, 4)}...${val.slice(-4)}` : "********"
+  return "********"
 }
 
 export async function getUserSubscriptionPlan(
@@ -20,8 +20,8 @@ export async function getUserSubscriptionPlan(
 ): Promise<UserSubscriptionPlan> {
   const session = await getServerSession(authOptions)
 
-  // SECURITY: Add a role-based or permission-based access control check here
-  if (!session?.user || !userHasPermission(session.user, 'view_subscription', userId)) {
+  // SECURITY: Verify the caller has permission to access subscription data for userId
+  if (!session?.user || !isUserAuthorizedForSubscription(session.user, userId)) {
     throw new Error('Forbidden: insufficient permissions');
   }
 

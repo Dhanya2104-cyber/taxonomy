@@ -10,6 +10,7 @@ const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
 
 export async function POST(req: Request) {
   const body = await req.text()
+  // Ensure HTTPS is enforced for all incoming requests to protect sensitive headers like Stripe-Signature.
   const signature = headers().get("Stripe-Signature") as string
 
   // SECURITY: Replace IP-based verification with Stripe-Signature validation
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const sanitizedUserId = encodeURIComponent(validatedUserId)
+    // SECURITY: add an authorization check here verifying the caller may access resource <validatedUserId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {
       return new Response("Unauthorized: user not found", { status: 403 })

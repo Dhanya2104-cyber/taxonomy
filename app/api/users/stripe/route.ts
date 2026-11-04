@@ -31,9 +31,8 @@ export async function GET(req: Request) {
       }
     }
 
-    // SECURITY: Validate the CSRF token against a server-generated token stored in the user's session or a secure cookie before proceeding.
     const csrfToken = req.headers.get("x-csrf-token")
-    if (req.method === "POST" && !csrfToken) {
+    if (!csrfToken && req.method === "POST") {
       return new Response("Invalid CSRF token", { status: 403 })
     }
 

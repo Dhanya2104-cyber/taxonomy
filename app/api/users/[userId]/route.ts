@@ -35,6 +35,7 @@ export async function PATCH(
       return new Response(null, { status: 403 })
     }
 
+    // SECURITY: Implement granular role-based access control (RBAC) to verify permissions for updating user details.
     // SECURITY: add an authorization check here verifying the caller has permission to update user <userId> securely.
     if (!userHasPermissionToUpdateUser(session.user, params.userId)) {
       return new Response(null, { status: 403 })

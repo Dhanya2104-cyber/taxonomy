@@ -74,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         }
         // Consider adding cryptographic validation for templateId
 
+        // SECURITY: Add stricter validation and sanitization for validatedUrl before using it in sendEmailWithTemplate.
         const result = await postmarkClient.sendEmailWithTemplate({
           TemplateId: parsedTemplateId,
           To: identifier,

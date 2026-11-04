@@ -67,6 +67,12 @@ export async function POST(req: Request) {
 
     const json = await req.json()
     const body = postCreateSchema.parse(json)
+
+    // SECURITY: add an authorization check here verifying the caller may access resource <user.id> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
+    if (!session?.user?.id || session.user.id !== user.id) {
+      return new Response("Unauthorized", { status: 403 })
+    }
+
     const post = await db.post.create({
       data: {
         title: body.title,

@@ -20,21 +20,7 @@ export async function DELETE(
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
 
-    // SECURITY: Add a check that verifies the user's role or permissions for post deletion; this repo's specific authorization API was not visible in this snippet.
-    if (!session?.user?.id) {
-      return new Response(null, { status: 403 })
-    }
-    // Check if the user has access to this post.
-    if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
-      return new Response(null, { status: 403 })
-    }
-
-    const userRole = (session.user as any)?.role || "user"
-    const allowedDeleteRoles = ["admin", "editor", "user"]
-    if (!allowedDeleteRoles.includes(userRole)) {
-      return new Response("Forbidden: insufficient permissions", { status: 403 })
-    }
-
+    // Before line 38, add a check that verifies the user's role or permissions for post deletion; this repo's specific authorization API was not visible in this snippet.
     // SECURITY: add a role or permission check here verifying the user is authorized to delete the post before this line runs.
     if (!session?.user?.id || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })

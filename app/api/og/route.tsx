@@ -61,7 +61,7 @@ export async function GET(req: Request) {
     if (heading.length > 140 || fontSize === '70px') {
       return new Response('Input too complex', { status: 400 });
     }
-    const sanitizedType = String(values.type).replace(/<[^>]*>?/gm, "");
+    const sanitizedType = DOMPurify.sanitize(String(values.type));
     const sanitizedHeading = heading;
     return new ImageResponse(
       (
