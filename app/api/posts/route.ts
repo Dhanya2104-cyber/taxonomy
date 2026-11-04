@@ -20,7 +20,6 @@ export async function GET() {
     }
 
     const { user } = session
-    // Ensure the service is deployed with HTTPS and enforce transport encryption for all endpoints.
     const posts = await db.post.findMany({
       select: {
         id: true,
@@ -33,10 +32,9 @@ export async function GET() {
       },
     })
 
-    // Ensure the service is deployed with HTTPS and enforce transport encryption for all endpoints.
     return new Response(JSON.stringify(posts))
   } catch (error) {
-    console.error(error);
+    console.error(error)
     return new Response(null, { status: 500 })
   }
 }
@@ -69,16 +67,12 @@ export async function POST(req: Request) {
     const json = await req.json()
     const body = postCreateSchema.parse(json)
 
-    // SECURITY: add an authorization check here verifying the caller may access resource <user.id> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
-    if (!session?.user?.id || session.user.id !== user.id) {
-      return new Response("Unauthorized", { status: 403 })
-    }
-
+    // authorId always comes from the session, never from the request body.
     const post = await db.post.create({
       data: {
         title: body.title,
         content: body.content || "",
-        authorId: session.user.id,
+        authorId: user.id,
       },
       select: {
         id: true,
