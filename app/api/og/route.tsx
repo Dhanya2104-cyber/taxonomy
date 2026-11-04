@@ -38,6 +38,9 @@ export async function GET(req: Request) {
       return new Response('Input too large', { status: 400 });
     }
     const params = sanitize(rawParams);
+    if (!params || typeof params !== 'object') {
+      return new Response('Invalid input', { status: 400 });
+    }
     const values = ogImageSchema.parse(params);
     const heading =
       values.heading.length > 140
@@ -166,8 +169,7 @@ export async function GET(req: Request) {
       }
     )
   } catch (error) {
-    return new Response(`Failed to generate image`, {
-      status: 500,
-    })
+    console.error('Error generating image:', error);
+    return new Response(`Failed to generate image`, { status: 500 });
   }
 }

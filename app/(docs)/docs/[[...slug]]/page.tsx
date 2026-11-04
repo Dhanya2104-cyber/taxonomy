@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 function sanitize(str: string): string {
-  return str.replace(/<[^>]*>?/gm, '')
+  return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
 }
 
 import { notFound } from "next/navigation"

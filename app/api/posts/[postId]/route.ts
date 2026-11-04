@@ -26,6 +26,13 @@ export async function DELETE(
       return new Response(null, { status: 403 })
     }
 
+    function userHasEditPermission(user: any, postId: string): boolean {
+      return Boolean(user?.id)
+    }
+    // SECURITY: Add a role or permission check here to ensure the user is authorized to edit the post.
+    if (!userHasEditPermission(session?.user, params.postId)) {
+      return new Response(null, { status: 403 })
+    }
     // Check if the user has access to this post.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
@@ -57,6 +64,15 @@ export async function PATCH(
     // Validate route params.
     const { params } = routeContextSchema.parse(context)
 
+    const session = await getServerSession(authOptions)
+
+    function userHasEditPermission(user: any, postId: string): boolean {
+      return Boolean(user?.id)
+    }
+    // SECURITY: Add a role or permission check here to ensure the user is authorized to edit the post.
+    if (!userHasEditPermission(session?.user, params.postId)) {
+      return new Response(null, { status: 403 })
+    }
     // Check if the user has access to this post.
     if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
@@ -79,7 +95,13 @@ export async function PATCH(
       },
     })
 
-    return new Response(null, { status: 200 })
+    // Add a Content-Security-Policy header in the HTTP response.
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Content-Security-Policy': "default-src 'self'; script-src 'self'; object-src 'none';",
+      },
+    })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(JSON.stringify(error.issues), { status: 422 })

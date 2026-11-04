@@ -8,7 +8,7 @@ import { env } from "@/env.mjs"
 import { siteConfig } from "@/config/site"
 import { db } from "@/lib/db"
 
-// SECURITY: Use a secrets manager to securely inject the POSTMARK_API_TOKEN
+// Use a secrets manager to securely inject the POSTMARK_API_TOKEN
 const postmarkClient = new Client(env.POSTMARK_API_TOKEN)
 
 export const authOptions: NextAuthOptions = {
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
         // SECURITY: Validate TemplateId against a predefined list of allowed values
         const parsedTemplateId = parseInt(templateId, 10)
         const allowedTemplateIds = [12345, 67890] // Example allowed IDs
-        if (!allowedTemplateIds.includes(parsedTemplateId) && (isNaN(parsedTemplateId) || parsedTemplateId <= 0)) {
+        if (!allowedTemplateIds.includes(parsedTemplateId) || isNaN(parsedTemplateId) || parsedTemplateId <= 0) {
           throw new Error("Invalid template id")
         }
 

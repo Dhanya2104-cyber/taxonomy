@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       return new Response(null, { status: 403 })
     }
 
-    // SECURITY: Verify the authenticated user has the necessary permissions to access the billing portal
+    // SECURITY: add an authorization check here verifying the caller may access the billing portal before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
     if (!session?.user?.id) {
       return new Response("Unauthorized", { status: 403 })
     }

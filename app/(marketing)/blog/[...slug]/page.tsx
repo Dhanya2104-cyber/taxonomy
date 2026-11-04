@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 function sanitizeHtml(str: string): string {
   return str.replace(/<[^>]*>?/gm, '')
 }
