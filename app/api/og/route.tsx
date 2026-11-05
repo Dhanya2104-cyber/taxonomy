@@ -64,11 +64,8 @@ export async function GET(req: Request) {
     if (heading.length > 140 || fontSize === '70px') {
       return new Response('Input too complex', { status: 400 });
     }
-    const sanitizedType = DOMPurify.sanitize(String(values.type));
     const allowedTypes = ['Documentation', 'Blog Post', 'Guide', 'Taxonomy', 'default']
-    if (!allowedTypes.includes(sanitizedType)) {
-      return new Response('Invalid type', { status: 400 });
-    }
+    const sanitizedType = allowedTypes.includes(values.type) ? values.type : 'default';
     const sanitizedHeading = heading;
     return new ImageResponse(
       (

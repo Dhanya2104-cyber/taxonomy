@@ -20,8 +20,8 @@ export async function DELETE(
     // Validate the route params.
     const { params } = routeContextSchema.parse(context)
 
-    // Only the post's author can delete it.
-    if (!(await verifyCurrentUserHasAccessToPost(params.postId))) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id || !(await verifyCurrentUserHasAccessToPost(params.postId))) {
       return new Response(null, { status: 403 })
     }
 
@@ -63,7 +63,7 @@ export async function PATCH(
 
     // Sanitize string content (object content should be sanitized on render).
     // SECURITY: ensure the application enforces a Content-Security-Policy (CSP) when rendering post content.
-    body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content, { ALLOWED_TAGS: ['b', 'i', 'a'], ALLOWED_ATTR: ['href'] }) : body.content
+    body.content = typeof body.content === "string" ? DOMPurify.sanitize(body.content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) : body.content
     // SECURITY: ensure proper encoding when rendering the content in the frontend.
 
     // Update the post.

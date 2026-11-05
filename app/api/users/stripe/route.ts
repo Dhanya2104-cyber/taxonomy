@@ -14,8 +14,18 @@ function userCanAccessBillingPortal(user: any): boolean {
   return Boolean(user?.id && user?.email)
 }
 
+export async function POST(req: Request) {
+  // SECURITY: ensure that the server-side implementation of '/api/users/stripe' validates the CSRF token included in the request headers. This validation should reject requests with missing or invalid tokens.
+  const csrfToken = req.headers.get("x-csrf-token")
+  if (!csrfToken) {
+    return new Response("Invalid CSRF token", { status: 403 })
+  }
+  return GET(req)
+}
+
 export async function GET(req: Request) {
   try {
+    // SECURITY: ensure that the server-side implementation of '/api/users/stripe' validates the CSRF token included in the request headers. This validation should reject requests with missing or invalid tokens.
     const session = await getServerSession(authOptions)
 
     function userCanAccessBillingPortal(user: any): boolean {

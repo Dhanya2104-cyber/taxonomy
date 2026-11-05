@@ -31,13 +31,13 @@ export async function getUserSubscriptionPlan(
   }
 
   // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
-  if (!isUserAuthorizedForSubscription(session?.user, userId)) {
+  if (!session?.user?.id || !isUserAuthorizedForSubscription(session.user, userId)) {
     throw new Error("Forbidden: insufficient permissions")
   }
 
   const user = await db.user.findFirst({
     where: {
-      id: userId,
+      id: session.user.id,
     },
     select: {
       stripeSubscriptionId: true,

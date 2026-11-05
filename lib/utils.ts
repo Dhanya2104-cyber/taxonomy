@@ -20,7 +20,7 @@ export function absoluteUrl(path: string) {
   if (!env.NEXT_PUBLIC_APP_URL.startsWith('https://')) {
     throw new Error('Invalid base URL');
   }
-  const sanitizedPath = path.replace(/[^a-zA-Z0-9/_-]/g, '');
+  const sanitizedPath = path.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\.\./g, '');
   if (sanitizedPath.includes('..')) {
     throw new Error('Path traversal detected');
   }

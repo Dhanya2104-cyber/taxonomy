@@ -68,11 +68,19 @@ function sanitizeTableMap(obj: any): any {
   return JSON.parse(JSON.stringify(obj))
 }
 
+function isValidTableMap(obj: any): boolean {
+  return Boolean(obj && typeof obj === 'object')
+}
+
 const getToc = () => (node, file) => {
   const table = toc(node)
   if (table.map && typeof table.map === 'object') {
     // SECURITY: sanitize table.map before processing
-    file.data = getItems(sanitizeTableMap(table.map), {})
+    const sanitizedMap = sanitizeTableMap(table.map);
+    if (!isValidTableMap(sanitizedMap)) {
+      throw new Error('Invalid sanitized table.map structure');
+    }
+    file.data = getItems(sanitizedMap, {})
   } else {
     throw new Error('Invalid table.map structure')
   }

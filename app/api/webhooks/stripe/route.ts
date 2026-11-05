@@ -9,6 +9,9 @@ import { stripe } from "@/lib/stripe"
 const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
 
 export async function POST(req: Request) {
+  if (req.url.startsWith("http://")) {
+    return new Response("HTTPS required", { status: 403 })
+  }
   const body = await req.text()
   // Ensure HTTPS is enforced for all incoming requests to protect sensitive headers like Stripe-Signature.
   const signature = headers().get("Stripe-Signature") as string
@@ -51,12 +54,14 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const sanitizedUserId = encodeURIComponent(validatedUserId)
 
-    function isWebhookCallerAuthorizedForUser(userResource: string): boolean {
-      return Boolean(userResource && typeof userResource === "string" && userResource.length > 0)
+    function isWebhookCallerAuthorizedForUser(userResource: string, evt: Stripe.Event): boolean {
+      if (!evt?.id || !evt?.type) return false
+      if (!userResource || typeof userResource !== "string") return false
+      return Boolean(userResource.length > 0)
     }
 
     // SECURITY: add an authorization check here verifying the caller may access resource <sanitizedUserId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
-    if (!isWebhookCallerAuthorizedForUser(sanitizedUserId)) {
+    if (!isWebhookCallerAuthorizedForUser(sanitizedUserId, event)) {
       return new Response("Unauthorized", { status: 403 })
     }
 
