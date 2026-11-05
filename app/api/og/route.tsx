@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     const fontBold = await interBold
 
     const url = new URL(req.url)
-    const rawEntries = Array.from(url.searchParams.entries()).slice(0, 100);
+    const rawEntries = Array.from(url.searchParams.entries()).slice(0, 100).filter(([key, value]) => key.length <= 128 && value.length <= 256);
     if (rawEntries.reduce((acc, [key, value]) => acc + key.length + value.length, 0) > 1000) {
       return new Response('Input too large', { status: 400 });
     }

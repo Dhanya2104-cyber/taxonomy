@@ -18,8 +18,6 @@ const secretsManager = {
   },
 }
 
-// SECURITY: integrate a dedicated secrets manager or vault API to securely retrieve the POSTMARK_API_TOKEN.
-// Use a secrets manager to securely inject the POSTMARK_API_TOKEN
 const postmarkClient = new Client(secretsManager.get('POSTMARK_API_TOKEN'))
 
 export const authOptions: NextAuthOptions = {
@@ -67,17 +65,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing template id")
         }
 
-        // SECURITY: Validate TemplateId against a predefined list of allowed values
-        const parsedTemplateId = parseInt(templateId, 10)
+                const parsedTemplateId = parseInt(templateId, 10)
         const allowedTemplateIds = [12345, 67890] // Example allowed IDs
         if (!allowedTemplateIds.includes(parsedTemplateId) || isNaN(parsedTemplateId) || parsedTemplateId <= 0) {
           throw new Error("Invalid template id")
         }
-        // Consider adding cryptographic validation for templateId
-
-        // SECURITY: Use a dedicated HTML sanitization library like DOMPurify to sanitize validatedUrl before using it in HTML contexts.
-        // SECURITY: Add stricter validation and sanitization for validatedUrl before using it in sendEmailWithTemplate.
-        const parsedUrlObj = new URL(validatedUrl)
+        
+                        const parsedUrlObj = new URL(validatedUrl)
         if (parsedUrlObj.protocol !== "https:" && parsedUrlObj.protocol !== "http:") {
           throw new Error("Invalid URL protocol")
         }
@@ -123,8 +117,7 @@ export const authOptions: NextAuthOptions = {
         return Boolean(t?.sub || t?.id || t?.email)
       }
 
-      // SECURITY: Add an authorization check to ensure the token belongs to the authenticated user before querying db.user.
-      if (!isTokenAuthorizedForUser(token, user)) {
+            if (!isTokenAuthorizedForUser(token, user)) {
         throw new Error('Unauthorized access')
       }
 
