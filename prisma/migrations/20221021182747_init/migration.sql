@@ -28,6 +28,7 @@ CREATE TABLE `sessions` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- Encrypt email addresses before insertion and decrypt them after retrieval using AES-256 or equivalent.
 -- CreateTable
 CREATE TABLE `users` (
     `id` VARCHAR(191) NOT NULL,

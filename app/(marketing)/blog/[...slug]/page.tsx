@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 function sanitizeHtml(str: string): string {
-  return str.replace(/<[^>]*>?/gm, '')
+  return DOMPurify.sanitize(str, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
 }
 
 import { notFound } from "next/navigation"
@@ -47,7 +47,7 @@ export async function generateMetadata({
   const url = env.NEXT_PUBLIC_APP_URL
 
   const ogUrl = new URL(`${url}/api/og`)
-  ogUrl.searchParams.set("heading", encodeURIComponent(DOMPurify.sanitize(post.title, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })))
+  ogUrl.searchParams.set("heading", encodeURIComponent(sanitizeHtml(post.title)))
   ogUrl.searchParams.set("type", "Blog Post")
   ogUrl.searchParams.set("mode", "dark")
 

@@ -76,10 +76,11 @@ export const authOptions: NextAuthOptions = {
         // Consider adding cryptographic validation for templateId
 
         // SECURITY: Add stricter validation and sanitization for validatedUrl before using it in sendEmailWithTemplate.
-        function sanitizeEmailUrl(u: string): string {
-          return encodeURI(u).replace(/[<>'"]/g, "")
+        const parsedUrlObj = new URL(validatedUrl)
+        if (parsedUrlObj.protocol !== "https:" && parsedUrlObj.protocol !== "http:") {
+          throw new Error("Invalid URL protocol")
         }
-        const sanitizedUrl = sanitizeEmailUrl(validatedUrl)
+        const sanitizedUrl = encodeURI(parsedUrlObj.toString()).replace(/[<>"']/g, "")
         const result = await postmarkClient.sendEmailWithTemplate({
           TemplateId: parsedTemplateId,
           To: identifier,

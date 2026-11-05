@@ -88,12 +88,16 @@ const getToc = () => (node, file) => {
 
 export type TableOfContents = Items
 
-const sanitizedContent = DOMPurify.sanitize(content)
-const result = await remark().use(getToc).process(sanitizedContent)
+function sanitizeMarkdown(text: string): string {
+  if (typeof text !== "string") return ""
+  return text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+}
+
 export async function getTableOfContents(
   content: string
 ): Promise<TableOfContents> {
-  const result = await remark().use(getToc).process(content)
+  const sanitizedContent = sanitizeMarkdown(content);
+  const result = await remark().use(getToc).process(sanitizedContent)
 
   return result.data
 }

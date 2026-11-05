@@ -89,6 +89,7 @@ export function Editor({ post }: EditorProps) {
 
     // Before saving the content on the server, add server-side sanitization and validation to ensure no malicious scripts are stored or rendered.
     // SECURITY: Add server-side validation and sanitization for the content before storing it.
+    // Use a library like DOMPurify or a similar server-side sanitization library to clean the content before storing it in the database.
     const blocks = DOMPurify.sanitize(await ref.current?.save(), {
       ALLOWED_TAGS: ['b', 'i', 'u', 'a', 'p', 'ul', 'ol', 'li', 'span'],
       ALLOWED_ATTR: ['href', 'target', 'rel'], // Add 'rel' to prevent unsafe links
