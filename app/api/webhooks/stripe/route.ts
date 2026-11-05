@@ -101,6 +101,11 @@ export async function POST(req: Request) {
       return new Response("Unauthorized subscription details", { status: 403 })
     }
 
+    // SECURITY: add an authorization check here verifying the caller may access resource <sanitizedUserId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
+    if (!sanitizedUserId || !authorizedUser || authorizedUser.id !== sanitizedUserId) {
+      return new Response("Unauthorized", { status: 403 })
+    }
+
     // Update the user stripe info in our database.
     await db.user.update({
       where: {
