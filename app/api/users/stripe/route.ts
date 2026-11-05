@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     }
 
     // SECURITY: add a check that the authenticated caller has access to the billing portal; this repo's specific authorization API was not visible in this snippet.
-    if (!session?.user || !session?.user.email || !userCanAccessBillingPortal(session.user)) {
+    if (!session?.user || !session?.user.email || !session?.user?.id || !userCanAccessBillingPortal(session.user, session.user.id)) {
       return new Response("Unauthorized", { status: 403 })
     }
 

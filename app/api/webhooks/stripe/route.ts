@@ -9,7 +9,7 @@ import { stripe } from "@/lib/stripe"
 const userIdSchema = z.string().regex(/^[a-zA-Z0-9_-]+$/)
 
 export async function POST(req: Request) {
-  if (req.url.startsWith("http://")) {
+  if (!req.url.startsWith("https://")) {
     return new Response("HTTPS required", { status: 403 })
   }
   const body = await req.text()
