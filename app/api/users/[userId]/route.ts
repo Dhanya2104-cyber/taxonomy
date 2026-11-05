@@ -40,13 +40,12 @@ export async function PATCH(
       return new Response(null, { status: 403 })
     }
 
-    const contentLength = req.headers.get("content-length")
-    if (contentLength && parseInt(contentLength, 10) > 100000) {
+    // Bounded request body parsing to prevent resource exhaustion
+    const rawBody = await req.text()
+    if (rawBody.length > 100000) {
       return new Response(JSON.stringify({ error: "Payload too large" }), { status: 413 })
     }
-
-    // Get the request body and validate it.
-    const body = await req.json()
+    const body = JSON.parse(rawBody)
     const payload = userNameSchema.parse(body)
 
     // Ensure the ORM being used properly parameterizes queries. If not, explicitly use parameterized queries or escape user input before including it in the query.

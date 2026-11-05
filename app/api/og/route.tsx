@@ -38,8 +38,8 @@ export async function GET(req: Request) {
       return new Response('Input too large', { status: 400 });
     }
     for (const [key, value] of rawEntries) {
-      if (value.length > 256) {
-        return new Response('Parameter value too large', { status: 400 });
+      if (key.length > 128 || value.length > 256) {
+        return new Response('Parameter name or value too large', { status: 400 });
       }
     }
     const rawParams = Object.fromEntries(rawEntries);
