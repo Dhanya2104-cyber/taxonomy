@@ -33,15 +33,7 @@ export function BillingForm({
     event.preventDefault()
     setIsLoading(!isLoading)
 
-        const csrfToken = typeof document !== "undefined" ? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "" : ""
-    const response = await fetch("/api/users/stripe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-      },
-      body: JSON.stringify({}),
-    })
+        const response = await fetch("/api/users/stripe")
     if (!response?.ok) {
       return toast({
         title: "Something went wrong.",
