@@ -21,6 +21,9 @@ export async function PATCH(
 
     // Users can only update their own account.
     const session = await getServerSession(authOptions)
+    if (!session?.user?.id || session.user.id !== params.userId) {
+      return new Response("Unauthorized", { status: 403 })
+    }
 
     function userHasUpdatePermission(user: any, targetId: string): boolean {
       return Boolean(user?.id && user.id === targetId)

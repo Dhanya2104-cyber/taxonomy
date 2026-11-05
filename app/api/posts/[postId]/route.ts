@@ -38,7 +38,7 @@ export async function DELETE(
       return new Response(JSON.stringify(error.issues), { status: 422 })
     }
 
-    console.error("Unexpected error in DELETE:", (error as any)?.message || "Internal Error")
+    console.error("Unexpected error in DELETE: An unexpected error occurred")
     // SECURITY: ensure logs are stored securely and not exposed in production.
     return new Response(null, { status: 500 })
   }

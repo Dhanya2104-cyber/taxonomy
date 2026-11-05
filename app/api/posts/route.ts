@@ -35,7 +35,7 @@ export async function GET() {
     // Ensure the service is deployed with HTTPS to encrypt responses in transit.
     return new Response(JSON.stringify(posts))
   } catch (error) {
-    console.error(error)
+    console.error("Error retrieving user posts")
     return new Response(null, { status: 500 })
   }
 }
@@ -71,7 +71,11 @@ export async function POST(req: Request) {
       return new Response("Payload too large", { status: 413 })
     }
 
-    const json = await req.json()
+    const rawText = await req.text()
+    if (rawText.length > 1000000) {
+      return new Response("Payload too large", { status: 413 })
+    }
+    const json = JSON.parse(rawText)
     const body = postCreateSchema.parse(json)
 
     // authorId always comes from the session, never from the request body.
