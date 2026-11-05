@@ -75,6 +75,7 @@ export const authOptions: NextAuthOptions = {
         }
         // Consider adding cryptographic validation for templateId
 
+        // SECURITY: Use a dedicated HTML sanitization library like DOMPurify to sanitize validatedUrl before using it in HTML contexts.
         // SECURITY: Add stricter validation and sanitization for validatedUrl before using it in sendEmailWithTemplate.
         const parsedUrlObj = new URL(validatedUrl)
         if (parsedUrlObj.protocol !== "https:" && parsedUrlObj.protocol !== "http:") {

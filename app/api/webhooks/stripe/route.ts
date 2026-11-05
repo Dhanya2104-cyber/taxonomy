@@ -55,18 +55,17 @@ export async function POST(req: Request) {
     const sanitizedUserId = encodeURIComponent(validatedUserId)
 
     function isWebhookCallerAuthorizedForUser(userResource: string, evt: Stripe.Event): boolean {
-      if (!evt?.id || !evt?.type) return false
-      if (!userResource || typeof userResource !== "string") return false
-      return Boolean(userResource.length > 0)
+      if (!evt?.id || !evt?.type || !userResource) return false
+      const sessionObj = evt.data?.object as Stripe.Checkout.Session | undefined
+      if (sessionObj?.client_reference_id && sessionObj.client_reference_id !== userResource) {
+        return false
+      }
+      return true
     }
 
     // SECURITY: add an authorization check here verifying the caller may access resource <sanitizedUserId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
     if (!isWebhookCallerAuthorizedForUser(sanitizedUserId, event)) {
       return new Response("Unauthorized", { status: 403 })
-    }
-    // Verify caller is authorized for user resource
-    if (!event || !sanitizedUserId || typeof sanitizedUserId !== "string") {
-      return new Response("Unauthorized: invalid caller permissions", { status: 403 })
     }
 
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
