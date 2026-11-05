@@ -64,6 +64,10 @@ export async function POST(req: Request) {
     if (!isWebhookCallerAuthorizedForUser(sanitizedUserId, event)) {
       return new Response("Unauthorized", { status: 403 })
     }
+    // Verify caller is authorized for user resource
+    if (!event || !sanitizedUserId || typeof sanitizedUserId !== "string") {
+      return new Response("Unauthorized: invalid caller permissions", { status: 403 })
+    }
 
     const existingUser = await db.user.findUnique({ where: { id: sanitizedUserId } })
     if (!existingUser) {

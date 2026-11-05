@@ -32,7 +32,7 @@ export async function getUserSubscriptionPlan(
 
   // Before line 33, add a check that verifies the authenticated caller has access to the subscription data for the user identified by userId; this repo's specific authorization API was not visible in this snippet.
   // SECURITY: add an authorization check here verifying the caller may access resource <userId> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet.
-  if (!session?.user?.id || session.user.id !== userId) {
+  if (!session?.user?.id || session.user.id !== userId || !isUserAuthorizedForSubscription(session.user, userId)) {
     throw new Error("Forbidden: insufficient permissions")
   }
 

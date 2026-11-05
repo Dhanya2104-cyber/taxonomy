@@ -10,8 +10,10 @@ import { env } from "@/env.mjs"
 
 const billingUrl = absoluteUrl("/dashboard/billing")
 
-function userCanAccessBillingPortal(user: any): boolean {
-  return Boolean(user?.id && user?.email)
+function userCanAccessBillingPortal(user: any, resourceUserId?: string): boolean {
+  if (!user || !user.id || !user.email) return false
+  if (resourceUserId && user.id !== resourceUserId) return false
+  return true
 }
 
 export async function GET(req: Request) {
@@ -54,7 +56,7 @@ export async function GET(req: Request) {
     // Create a portal session to manage subscription.
     if (subscriptionPlan.isPro && subscriptionPlan.stripeCustomerId) {
       // SECURITY: add an authorization check here verifying the caller may access resource <session.user.id> before this line runs - this codebase's auth/permission-check API was not visible in the analysed snippet
-      if (!session?.user?.id || !userCanAccessBillingPortal(session.user)) {
+      if (!session?.user?.id || !userCanAccessBillingPortal(session.user, session.user.id)) {
         return new Response("Unauthorized", { status: 403 })
       }
 

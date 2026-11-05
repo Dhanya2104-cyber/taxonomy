@@ -22,6 +22,10 @@ export const metadata = {
   description: "Manage billing and your subscription plan.",
 }
 
+function isValidSubscriptionId(id: string): boolean {
+  return typeof id === "string" && /^sub_[a-zA-Z0-9]+$/.test(id)
+}
+
 export default async function BillingPage() {
   const user = await getCurrentUser()
 
@@ -34,6 +38,9 @@ export default async function BillingPage() {
   // If user has a pro plan, check cancel status on Stripe.
   let isCanceled = false
   if (subscriptionPlan.isPro && subscriptionPlan.stripeSubscriptionId) {
+    if (!isValidSubscriptionId(subscriptionPlan.stripeSubscriptionId)) {
+      throw new Error("Invalid subscription ID")
+    }
     const stripePlan = await stripe.subscriptions.retrieve(
       subscriptionPlan.stripeSubscriptionId
     )
